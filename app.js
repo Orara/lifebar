@@ -327,7 +327,7 @@ function generateInstagramStoryImage() {
                     <div class="ig-bar" style="width: ${todayWidth}; background: var(--grad-today);"></div>
                 </div>
                 <div class="ig-card-footer">
-                    <span class="ig-percent" style="background: var(--grad-today); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${percentTodayText}</span>
+                    <span class="ig-percent" style="color: #00f2fe;">${percentTodayText}</span>
                     <span class="ig-desc">오늘이 흐르는 중</span>
                 </div>
             </div>
@@ -342,7 +342,7 @@ function generateInstagramStoryImage() {
                     <div class="ig-bar" style="width: ${monthWidth}; background: var(--grad-month);"></div>
                 </div>
                 <div class="ig-card-footer">
-                    <span class="ig-percent" style="background: var(--grad-month); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${percentMonthText}</span>
+                    <span class="ig-percent" style="color: #81fbb8;">${percentMonthText}</span>
                     <span class="ig-desc">${now.getMonth() + 1}월 진척도</span>
                 </div>
             </div>
@@ -357,7 +357,7 @@ function generateInstagramStoryImage() {
                     <div class="ig-bar" style="width: ${yearWidth}; background: var(--grad-year);"></div>
                 </div>
                 <div class="ig-card-footer">
-                    <span class="ig-percent" style="background: var(--grad-year); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${percentYearText}</span>
+                    <span class="ig-percent" style="color: #ffd3a5;">${percentYearText}</span>
                     <span class="ig-desc">${now.getFullYear()}년 진척도</span>
                 </div>
             </div>
@@ -372,7 +372,7 @@ function generateInstagramStoryImage() {
                     <div class="ig-bar" style="width: ${lifeWidth}; background: var(--grad-life);"></div>
                 </div>
                 <div class="ig-card-footer">
-                    <span class="ig-percent" style="background: var(--grad-life); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${percentLifeText}</span>
+                    <span class="ig-percent" style="color: #f355da;">${percentLifeText}</span>
                     <span class="ig-desc">나의 평생진척률</span>
                 </div>
             </div>

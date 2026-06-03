@@ -646,9 +646,9 @@ body {
 
 .ig-logo {
     font-size: 48px;
-    background: var(--grad-btn);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(184, 0, 255, 0.6);
+    margin-bottom: 8px;
 }
 
 .ig-title {
