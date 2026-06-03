@@ -147,14 +147,25 @@
             <!-- Today's One-Line Resolution -->
             <div class="glass-card resolution-card">
                 <h3 class="section-title"><i class="fa-solid fa-pen-nib"></i> 오늘의 한 줄 다짐</h3>
-                <input type="text" id="resolution-input" placeholder="오늘 하루 집중할 단 한 가지 목표를 적어보세요..." maxlength="60">
-                <div class="input-hint">날짜가 바뀌면 다짐은 자동으로 비워집니다.</div>
+                <div class="resolution-input-container">
+                    <button id="resolution-complete-btn" class="resolution-check-btn" title="완료 표시"><i class="fa-regular fa-circle"></i></button>
+                    <input type="text" id="resolution-input" placeholder="오늘 하루 집중할 단 한 가지 목표를 적어보세요..." maxlength="60">
+                </div>
+                <div class="input-hint">달성했다면 왼쪽의 원을 눌러 완료 표시를 해보세요! 다음 날이 되면 기록장으로 보관됩니다.</div>
             </div>
 
             <!-- Life Retrospective Diary -->
             <div class="glass-card diary-card">
                 <h3 class="section-title"><i class="fa-solid fa-book-open"></i> 오늘 하루 회고록</h3>
                 <textarea id="diary-input" placeholder="오늘 흘러간 시간 동안 느꼈던 솔직한 생각을 자유롭게 남겨보세요. 실시간으로 브라우저에 저장됩니다..." rows="5"></textarea>
+            </div>
+        </div>
+
+        <!-- History / Archives Section -->
+        <div class="glass-card history-card" id="history-section">
+            <h3 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> 지나온 하루 기록장</h3>
+            <div class="history-timeline" id="history-timeline">
+                <div class="no-history-msg">아직 지나온 하루의 기록이 없습니다. 매일 다짐과 회고를 남기면 여기에 기록이 채워집니다.</div>
             </div>
         </div>
 

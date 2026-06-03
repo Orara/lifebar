@@ -249,29 +249,186 @@ function checkOnboardingState() {
     }
 }
 
-// Check if a new day has arrived to reset resolution text
-function checkDailyResolutionReset() {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const savedDate = localStorage.getItem('aw-resolution-date');
-    const resolutionInput = document.getElementById('resolution-input');
-    
-    if (savedDate !== todayStr) {
-        // Date changed! Reset daily resolution input
-        localStorage.setItem('aw-resolution-date', todayStr);
-        localStorage.removeItem('aw-resolution-text');
-        if (resolutionInput) resolutionInput.value = '';
-    } else {
-        // Keep today's text
-        const savedText = localStorage.getItem('aw-resolution-text') || '';
-        if (resolutionInput) resolutionInput.value = savedText;
-    }
-    
-    // Load retrospective diary (persists across days)
-    const diaryInput = document.getElementById('diary-input');
-    if (diaryInput) {
-        diaryInput.value = localStorage.getItem('aw-diary-text') || '';
+function getTodayDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function loadHistory() {
+    try {
+        const historyStr = localStorage.getItem('aw-life-history');
+        return historyStr ? JSON.parse(historyStr) : {};
+    } catch (e) {
+        console.error("Failed to parse history data", e);
+        return {};
     }
 }
+
+function saveHistory(history) {
+    localStorage.setItem('aw-life-history', JSON.stringify(history));
+}
+
+function getTodayData() {
+    const history = loadHistory();
+    const todayStr = getTodayDateString();
+    return history[todayStr] || { resolution: '', completed: false, diary: '' };
+}
+
+function saveTodayData(updates, shouldRedrawTimeline = false) {
+    const history = loadHistory();
+    const todayStr = getTodayDateString();
+    const todayData = history[todayStr] || { resolution: '', completed: false, diary: '' };
+    
+    const updatedData = { ...todayData, ...updates };
+    history[todayStr] = updatedData;
+    
+    saveHistory(history);
+    if (shouldRedrawTimeline) {
+        renderHistoryTimeline();
+    }
+}
+
+function migrateOldStorage() {
+    const oldResolution = localStorage.getItem('aw-resolution-text');
+    const oldDiary = localStorage.getItem('aw-diary-text');
+    const oldDate = localStorage.getItem('aw-resolution-date') || getTodayDateString();
+    
+    if (oldResolution || oldDiary) {
+        const history = loadHistory();
+        if (!history[oldDate]) {
+            history[oldDate] = {
+                resolution: oldResolution || '',
+                completed: false,
+                diary: oldDiary || ''
+            };
+            saveHistory(history);
+        }
+        
+        // Remove old keys to clean up
+        localStorage.removeItem('aw-resolution-text');
+        localStorage.removeItem('aw-diary-text');
+        localStorage.removeItem('aw-resolution-date');
+    }
+}
+
+// Check if a new day has arrived to reset resolution text
+function checkDailyResolutionReset() {
+    // 1. Run migration if there is old data
+    migrateOldStorage();
+    
+    // 2. Fetch today's data
+    const todayData = getTodayData();
+    
+    const resolutionInput = document.getElementById('resolution-input');
+    const diaryInput = document.getElementById('diary-input');
+    const completeBtn = document.getElementById('resolution-complete-btn');
+    
+    if (resolutionInput) {
+        resolutionInput.value = todayData.resolution || '';
+        if (todayData.completed) {
+            resolutionInput.classList.add('completed');
+        } else {
+            resolutionInput.classList.remove('completed');
+        }
+    }
+    
+    if (diaryInput) {
+        diaryInput.value = todayData.diary || '';
+    }
+    
+    if (completeBtn) {
+        const icon = completeBtn.querySelector('i');
+        if (todayData.completed) {
+            completeBtn.classList.add('completed');
+            if (icon) icon.className = 'fa-solid fa-circle-check';
+        } else {
+            completeBtn.classList.remove('completed');
+            if (icon) icon.className = 'fa-regular fa-circle';
+        }
+    }
+    
+    // 3. Render the timeline
+    renderHistoryTimeline();
+}
+
+function renderHistoryTimeline() {
+    const historyTimeline = document.getElementById('history-timeline');
+    if (!historyTimeline) return;
+    
+    const history = loadHistory();
+    const todayStr = getTodayDateString();
+    
+    // Get all sorted dates in reverse chronological order (excluding today)
+    const sortedDates = Object.keys(history)
+        .filter(d => d !== todayStr)
+        .sort((a, b) => b.localeCompare(a));
+        
+    if (sortedDates.length === 0) {
+        historyTimeline.innerHTML = `<div class="no-history-msg">아직 지나온 하루의 기록이 없습니다. 매일 다짐과 회고를 남기면 여기에 기록이 채워집니다.</div>`;
+        return;
+    }
+    
+    let html = '';
+    sortedDates.forEach(dateStr => {
+        const data = history[dateStr];
+        if (!data.resolution && !data.diary) return;
+        
+        const dateObj = new Date(dateStr);
+        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayOfWeek = weekdays[dateObj.getDay()];
+        const formattedDate = `${dateStr.replace(/-/g, '. ')} (${dayOfWeek})`;
+        
+        const resolutionHTML = data.resolution 
+            ? `<div class="history-resolution ${data.completed ? 'completed' : ''}">
+                <i class="${data.completed ? 'fa-solid fa-circle-check check-success' : 'fa-regular fa-circle'}"></i>
+                <span>${escapeHtml(data.resolution)}</span>
+               </div>`
+            : '';
+            
+        const diaryHTML = data.diary
+            ? `<div class="history-diary">${escapeHtml(data.diary).replace(/\n/g, '<br>')}</div>`
+            : '';
+            
+        html += `
+            <div class="history-item">
+                <div class="history-item-header">
+                    <span class="history-item-date">${formattedDate}</span>
+                    <button class="delete-history-btn" onclick="deleteHistoryItem('${dateStr}')" title="이 기록 삭제"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+                <div class="history-item-content">
+                    ${resolutionHTML}
+                    ${diaryHTML}
+                </div>
+            </div>
+        `;
+    });
+    
+    if (html === '') {
+        historyTimeline.innerHTML = `<div class="no-history-msg">아직 지나온 하루의 기록이 없습니다. 매일 다짐과 회고를 남기면 여기에 기록이 채워집니다.</div>`;
+    } else {
+        historyTimeline.innerHTML = html;
+    }
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+}
+
+window.deleteHistoryItem = function(dateStr) {
+    if (confirm(`${dateStr}의 기록을 완전히 삭제하시겠습니까?`)) {
+        const history = loadHistory();
+        delete history[dateStr];
+        saveHistory(history);
+        renderHistoryTimeline();
+    }
+};
 
 // ==========================================================================
 // 5. Instagram Story Export (html2canvas Wrapper Rendering)
@@ -504,9 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm("설정값과 기록을 모두 삭제하고 첫 화면으로 돌아가시겠습니까?")) {
                 localStorage.removeItem('aw-life-birth');
                 localStorage.removeItem('aw-life-expectancy');
-                localStorage.removeItem('aw-resolution-text');
-                localStorage.removeItem('aw-resolution-date');
-                localStorage.removeItem('aw-diary-text');
+                localStorage.removeItem('aw-life-history');
                 checkOnboardingState();
             }
         });
@@ -516,9 +671,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const resolutionInput = document.getElementById('resolution-input');
     if (resolutionInput) {
         resolutionInput.addEventListener('input', (e) => {
-            const todayStr = new Date().toISOString().split('T')[0];
-            localStorage.setItem('aw-resolution-date', todayStr);
-            localStorage.setItem('aw-resolution-text', e.target.value);
+            saveTodayData({ resolution: e.target.value }, false);
+        });
+    }
+
+    // 8b. Daily resolution toggle complete
+    const completeBtn = document.getElementById('resolution-complete-btn');
+    if (completeBtn && resolutionInput) {
+        completeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const todayData = getTodayData();
+            const newCompleted = !todayData.completed;
+            
+            saveTodayData({ completed: newCompleted }, false);
+            
+            // Update UI
+            const icon = completeBtn.querySelector('i');
+            if (newCompleted) {
+                completeBtn.classList.add('completed');
+                resolutionInput.classList.add('completed');
+                if (icon) icon.className = 'fa-solid fa-circle-check';
+            } else {
+                completeBtn.classList.remove('completed');
+                resolutionInput.classList.remove('completed');
+                if (icon) icon.className = 'fa-regular fa-circle';
+            }
         });
     }
 
@@ -526,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const diaryInput = document.getElementById('diary-input');
     if (diaryInput) {
         diaryInput.addEventListener('input', (e) => {
-            localStorage.setItem('aw-diary-text', e.target.value);
+            saveTodayData({ diary: e.target.value }, false);
         });
     }
 

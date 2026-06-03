@@ -733,6 +733,181 @@ body {
     font-size: 18px;
     letter-spacing: 0.5px;
 }
+/* ==========================================================================
+   4. Resolution Checker & History Archive Styles
+   ========================================================================== */
+.resolution-input-container {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    padding: 2px 14px;
+    gap: 12px;
+    transition: var(--transition-smooth);
+}
+
+.resolution-input-container:focus-within {
+    border-color: rgba(184, 0, 255, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 15px rgba(184, 0, 255, 0.15);
+}
+
+.resolution-input-container input {
+    border: none !important;
+    background: transparent !important;
+    padding: 12px 0 !important;
+    flex-grow: 1;
+}
+
+.resolution-input-container input.completed {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.resolution-check-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: var(--transition-smooth);
+    padding: 0;
+}
+
+.resolution-check-btn:hover {
+    color: #81fbb8;
+    transform: scale(1.1);
+}
+
+.resolution-check-btn.completed {
+    color: #28c76f;
+    text-shadow: 0 0 8px rgba(40, 199, 111, 0.4);
+}
+
+/* History Card */
+.history-card {
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.history-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Custom Scrollbar for Timeline */
+.history-timeline::-webkit-scrollbar {
+    width: 6px;
+}
+.history-timeline::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+.history-timeline::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+.history-timeline::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.no-history-msg {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 30px 10px;
+}
+
+.history-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: var(--transition-smooth);
+}
+
+.history-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-item-date {
+    font-family: var(--font-alt);
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffd3a5; /* warm gold color for date */
+}
+
+.delete-history-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    transition: var(--transition-smooth);
+    padding: 4px;
+}
+
+.delete-history-btn:hover {
+    color: #ff6b8b;
+    transform: scale(1.1);
+}
+
+.history-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-resolution {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.history-resolution.completed {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.history-resolution i {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.history-resolution i.check-success {
+    color: #28c76f;
+}
+
+.history-diary {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.15);
+    padding: 12px;
+    border-radius: var(--border-radius-sm);
+    word-break: break-all;
+}
 
 /* ==========================================================================
    Responsive Viewport Custom Adjustments (Media Queries)
