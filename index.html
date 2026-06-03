@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나의 인생 진척도 | My Life Progress Bar</title>
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Outfit:wght@200;400;600;800&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Dynamic Sky Background & Particle Container -->
+    <div id="sky-background" class="sky-background">
+        <div id="stars-container" class="stars"></div>
+    </div>
+
+    <!-- Onboarding Screen (Initial entry) -->
+    <div id="onboarding-screen" class="screen-container">
+        <div class="glass-card onboarding-card">
+            <div class="logo-area">
+                <i class="fa-solid fa-hourglass-half pulse-icon"></i>
+            </div>
+            <h1 class="main-title">나의 인생 진척도</h1>
+            <p class="subtitle">나의 하루, 한 달, 일 년, 그리고 평생의 흘러가는 순간을 마주해 보세요.</p>
+            
+            <form id="onboarding-form">
+                <div class="input-group">
+                    <label for="birth-date"><i class="fa-solid fa-cake-candles"></i> 태어난 날짜</label>
+                    <input type="date" id="birth-date" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="expectancy-age"><i class="fa-solid fa-heart-pulse"></i> 예상 수명 (나이)</label>
+                    <input type="number" id="expectancy-age" min="1" max="150" value="80" required>
+                </div>
+
+                <!-- Privacy Policy Notice -->
+                <div class="privacy-warning">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span><strong>개인정보 보호 안내:</strong> 생년월일과 회고록 등 모든 데이터는 인터넷 서버에 절대 전송되거나 저장되지 않으며, 오직 사용자의 브라우저(localStorage)에만 안전하게 보관됩니다.</span>
+                </div>
+
+                <button type="submit" class="primary-btn">
+                    <span>인생 진척도 열기</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Screen -->
+    <div id="dashboard-screen" class="screen-container hidden">
+        <header class="app-header">
+            <div class="brand">
+                <i class="fa-solid fa-hourglass-half brand-icon"></i>
+                <span class="brand-name">Life Progress</span>
+            </div>
+            <div class="header-actions">
+                <button id="settings-btn" class="icon-btn" title="설정 변경"><i class="fa-solid fa-sliders"></i></button>
+                <button id="reset-btn" class="icon-btn" title="초기화"><i class="fa-solid fa-arrow-rotate-left"></i></button>
+            </div>
+        </header>
+
+        <!-- Progress Cards Grid -->
+        <div class="cards-grid" id="capture-area">
+            <!-- Card 1: Today's Progress -->
+            <div class="glass-card progress-card" id="card-today">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-sun icon-today"></i> 오늘 하루</span>
+                    <span class="card-detail" id="clock-display">00:00:00</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar bar-today" id="bar-today" style="width: 0%;"></div>
+                </div>
+                <div class="card-footer">
+                    <span class="percent-text" id="percent-today">0.0000%</span>
+                    <span class="footer-desc" id="desc-today">오늘이 흐르는 중</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Month's Progress -->
+            <div class="glass-card progress-card" id="card-month">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-calendar-days icon-month"></i> 이번 달</span>
+                    <span class="card-detail" id="month-display">0 / 0 일</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar bar-month" id="bar-month" style="width: 0%;"></div>
+                </div>
+                <div class="card-footer">
+                    <span class="percent-text" id="percent-month">0.0000%</span>
+                    <span class="footer-desc" id="desc-month">이번 달의 흐름</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Year's Progress -->
+            <div class="glass-card progress-card" id="card-year">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-calendar icon-year"></i> 올해</span>
+                    <span class="card-detail" id="year-display">0 / 0 일</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar bar-year" id="bar-year" style="width: 0%;"></div>
+                </div>
+                <div class="card-footer">
+                    <span class="percent-text" id="percent-year">0.0000%</span>
+                    <span class="footer-desc" id="desc-year">올해가 지나가는 중</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Life's Progress -->
+            <div class="glass-card progress-card" id="card-life">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-user icon-life"></i> 내 인생</span>
+                    <span class="card-detail" id="life-display">0.00 세</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar bar-life" id="bar-life" style="width: 0%;"></div>
+                </div>
+                <div class="card-footer">
+                    <span class="percent-text" id="percent-life">0.0000%</span>
+                    <span class="footer-desc" id="desc-life">나의 평생진척률</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extra Information Board -->
+        <div class="glass-card stats-card">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-num" id="stat-days-lived">0</span>
+                    <span class="stat-label">살아온 일수 (Days)</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num" id="stat-days-left">0</span>
+                    <span class="stat-label">남은 일수 (Days)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resolution & Retrospective Section -->
+        <div class="writing-section">
+            <!-- Today's One-Line Resolution -->
+            <div class="glass-card resolution-card">
+                <h3 class="section-title"><i class="fa-solid fa-pen-nib"></i> 오늘의 한 줄 다짐</h3>
+                <input type="text" id="resolution-input" placeholder="오늘 하루 집중할 단 한 가지 목표를 적어보세요..." maxlength="60">
+                <div class="input-hint">날짜가 바뀌면 다짐은 자동으로 비워집니다.</div>
+            </div>
+
+            <!-- Life Retrospective Diary -->
+            <div class="glass-card diary-card">
+                <h3 class="section-title"><i class="fa-solid fa-book-open"></i> 오늘 하루 회고록</h3>
+                <textarea id="diary-input" placeholder="오늘 흘러간 시간 동안 느꼈던 솔직한 생각을 자유롭게 남겨보세요. 실시간으로 브라우저에 저장됩니다..." rows="5"></textarea>
+            </div>
+        </div>
+
+        <!-- Action Utility Buttons -->
+        <div class="action-buttons">
+            <button id="share-text-btn" class="secondary-btn"><i class="fa-solid fa-copy"></i> <span>결과 텍스트 복사</span></button>
+            <button id="export-img-btn" class="accent-btn"><i class="fa-brands fa-instagram"></i> <span>인스타 스토리용 저장</span></button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-card">
+            <button class="close-btn" id="close-settings-btn">&times;</button>
+            <h2>나의 인생 설정</h2>
+            <p class="modal-desc">생년월일과 예상 수명을 언제든 수정할 수 있습니다.</p>
+            
+            <form id="settings-form">
+                <div class="input-group">
+                    <label for="settings-birth-date">태어난 날짜</label>
+                    <input type="date" id="settings-birth-date" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="settings-expectancy-age">예상 수명 (나이)</label>
+                    <input type="number" id="settings-expectancy-age" min="1" max="150" required>
+                </div>
+
+                <div class="privacy-warning">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>기기를 변경하거나 브라우저 쿠키/캐시를 지우면 설정값이 초기화될 수 있습니다.</span>
+                </div>
+
+                <button type="submit" class="primary-btn">설정 변경 저장</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- html2canvas Library via CDN (Used for high quality Instagram Stories capture) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
