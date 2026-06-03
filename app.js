@@ -277,7 +277,11 @@ function getTodayData() {
     return history[todayStr] || { resolution: '', completed: false, diary: '' };
 }
 
-function saveTodayData(updates, shouldRedrawTimeline = false) {
+let currentCalendarYear = new Date().getFullYear();
+let currentCalendarMonth = new Date().getMonth();
+let selectedDateForDelete = null;
+
+function saveTodayData(updates, shouldRedrawCalendar = false) {
     const history = loadHistory();
     const todayStr = getTodayDateString();
     const todayData = history[todayStr] || { resolution: '', completed: false, diary: '' };
@@ -286,8 +290,8 @@ function saveTodayData(updates, shouldRedrawTimeline = false) {
     history[todayStr] = updatedData;
     
     saveHistory(history);
-    if (shouldRedrawTimeline) {
-        renderHistoryTimeline();
+    if (shouldRedrawCalendar) {
+        renderHistoryCalendar();
     }
 }
 
@@ -350,66 +354,154 @@ function checkDailyResolutionReset() {
         }
     }
     
-    // 3. Render the timeline
-    renderHistoryTimeline();
+    // 3. Render the calendar
+    renderHistoryCalendar();
 }
 
-function renderHistoryTimeline() {
-    const historyTimeline = document.getElementById('history-timeline');
-    if (!historyTimeline) return;
+function renderHistoryCalendar() {
+    const calendarGrid = document.getElementById('calendar-grid');
+    const calendarTitle = document.getElementById('calendar-title');
+    if (!calendarGrid || !calendarTitle) return;
+    
+    calendarTitle.textContent = `${currentCalendarYear}년 ${currentCalendarMonth + 1}월`;
+    
+    calendarGrid.innerHTML = '';
     
     const history = loadHistory();
     const todayStr = getTodayDateString();
     
-    // Get all sorted dates in reverse chronological order (excluding today)
-    const sortedDates = Object.keys(history)
-        .filter(d => d !== todayStr)
-        .sort((a, b) => b.localeCompare(a));
-        
-    if (sortedDates.length === 0) {
-        historyTimeline.innerHTML = `<div class="no-history-msg">아직 지나온 하루의 기록이 없습니다. 매일 다짐과 회고를 남기면 여기에 기록이 채워집니다.</div>`;
-        return;
+    const firstDayIndex = new Date(currentCalendarYear, currentCalendarMonth, 1).getDay();
+    const totalDays = new Date(currentCalendarYear, currentCalendarMonth + 1, 0).getDate();
+    const prevMonthTotalDays = new Date(currentCalendarYear, currentCalendarMonth, 0).getDate();
+    
+    // 1. Render prefix cells (other month)
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+        const dayNum = prevMonthTotalDays - i;
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell other-month';
+        cell.innerHTML = `<span class="calendar-cell-num">${dayNum}</span>`;
+        calendarGrid.appendChild(cell);
     }
     
-    let html = '';
-    sortedDates.forEach(dateStr => {
-        const data = history[dateStr];
-        if (!data.resolution && !data.diary) return;
+    // 2. Render actual day cells
+    for (let d = 1; d <= totalDays; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
         
-        const dateObj = new Date(dateStr);
-        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-        const dayOfWeek = weekdays[dateObj.getDay()];
-        const formattedDate = `${dateStr.replace(/-/g, '. ')} (${dayOfWeek})`;
+        const dateStr = `${currentCalendarYear}-${String(currentCalendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         
-        const resolutionHTML = data.resolution 
-            ? `<div class="history-resolution ${data.completed ? 'completed' : ''}">
-                <i class="${data.completed ? 'fa-solid fa-circle-check check-success' : 'fa-regular fa-circle'}"></i>
-                <span>${escapeHtml(data.resolution)}</span>
-               </div>`
-            : '';
-            
-        const diaryHTML = data.diary
-            ? `<div class="history-diary">${escapeHtml(data.diary).replace(/\n/g, '<br>')}</div>`
-            : '';
-            
-        html += `
-            <div class="history-item">
-                <div class="history-item-header">
-                    <span class="history-item-date">${formattedDate}</span>
-                    <button class="delete-history-btn" onclick="deleteHistoryItem('${dateStr}')" title="이 기록 삭제"><i class="fa-solid fa-trash-can"></i></button>
-                </div>
-                <div class="history-item-content">
-                    ${resolutionHTML}
-                    ${diaryHTML}
-                </div>
-            </div>
-        `;
-    });
+        const cellNum = document.createElement('span');
+        cellNum.className = 'calendar-cell-num';
+        cellNum.textContent = d;
+        cell.appendChild(cellNum);
+        
+        if (dateStr === todayStr) {
+            cell.classList.add('today');
+        }
+        
+        if (history[dateStr]) {
+            const record = history[dateStr];
+            if (record.resolution || record.diary) {
+                cell.classList.add('has-record');
+                
+                const dot = document.createElement('div');
+                dot.className = 'calendar-record-indicator';
+                if (record.completed) {
+                    dot.classList.add('completed');
+                }
+                cell.appendChild(dot);
+                
+                cell.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openCalendarDetailModal(dateStr, record);
+                });
+            }
+        }
+        
+        calendarGrid.appendChild(cell);
+    }
     
-    if (html === '') {
-        historyTimeline.innerHTML = `<div class="no-history-msg">아직 지나온 하루의 기록이 없습니다. 매일 다짐과 회고를 남기면 여기에 기록이 채워집니다.</div>`;
+    // 3. Render suffix cells (other month)
+    const totalCellsSoFar = firstDayIndex + totalDays;
+    const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
+    for (let i = 1; i <= remainingCells; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell other-month';
+        cell.innerHTML = `<span class="calendar-cell-num">${i}</span>`;
+        calendarGrid.appendChild(cell);
+    }
+}
+
+function changeCalendarMonth(offset) {
+    currentCalendarMonth += offset;
+    if (currentCalendarMonth < 0) {
+        currentCalendarMonth = 11;
+        currentCalendarYear -= 1;
+    } else if (currentCalendarMonth > 11) {
+        currentCalendarMonth = 0;
+        currentCalendarYear += 1;
+    }
+    renderHistoryCalendar();
+}
+
+function openCalendarDetailModal(dateStr, record) {
+    const modal = document.getElementById('calendar-detail-modal');
+    const dateText = document.getElementById('detail-date');
+    const resContainer = document.getElementById('detail-resolution-container');
+    const resIcon = document.getElementById('detail-resolution-icon');
+    const resText = document.getElementById('detail-resolution-text');
+    const diaryText = document.getElementById('detail-diary');
+    
+    if (!modal || !dateText || !resContainer || !resIcon || !resText || !diaryText) return;
+    
+    selectedDateForDelete = dateStr;
+    
+    const dateObj = new Date(dateStr);
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const dayOfWeek = weekdays[dateObj.getDay()];
+    dateText.textContent = `${dateStr.replace(/-/g, '. ')} (${dayOfWeek})`;
+    
+    if (record.resolution) {
+        resText.textContent = record.resolution;
+        resContainer.style.display = 'flex';
+        if (record.completed) {
+            resContainer.className = 'calendar-detail-resolution completed';
+            resIcon.className = 'fa-solid fa-circle-check check-success';
+        } else {
+            resContainer.className = 'calendar-detail-resolution';
+            resIcon.className = 'fa-regular fa-circle';
+        }
     } else {
-        historyTimeline.innerHTML = html;
+        resContainer.style.display = 'none';
+    }
+    
+    if (record.diary) {
+        diaryText.innerHTML = escapeHtml(record.diary).replace(/\n/g, '<br>');
+        diaryText.style.display = 'block';
+    } else {
+        diaryText.style.display = 'none';
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function closeCalendarDetailModal() {
+    const modal = document.getElementById('calendar-detail-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    selectedDateForDelete = null;
+}
+
+function deleteSelectedCalendarRecord() {
+    if (!selectedDateForDelete) return;
+    
+    if (confirm(`${selectedDateForDelete}의 기록을 완전히 삭제하시겠습니까?`)) {
+        const history = loadHistory();
+        delete history[selectedDateForDelete];
+        saveHistory(history);
+        closeCalendarDetailModal();
+        renderHistoryCalendar();
     }
 }
 
@@ -420,15 +512,6 @@ function escapeHtml(str) {
               .replace(/"/g, "&quot;")
               .replace(/'/g, "&#039;");
 }
-
-window.deleteHistoryItem = function(dateStr) {
-    if (confirm(`${dateStr}의 기록을 완전히 삭제하시겠습니까?`)) {
-        const history = loadHistory();
-        delete history[dateStr];
-        saveHistory(history);
-        renderHistoryTimeline();
-    }
-};
 
 // ==========================================================================
 // 5. Instagram Story Export (html2canvas Wrapper Rendering)
@@ -747,6 +830,49 @@ document.addEventListener('DOMContentLoaded', () => {
         exportImgBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             generateInstagramStoryImage();
+        });
+    }
+
+    // 12. Calendar Navigation and Modal Listeners
+    const prevBtn = document.getElementById('calendar-prev-btn');
+    const nextBtn = document.getElementById('calendar-next-btn');
+    const detailCloseBtn = document.getElementById('detail-close-btn');
+    const detailDeleteBtn = document.getElementById('detail-delete-btn');
+    const detailModal = document.getElementById('calendar-detail-modal');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            changeCalendarMonth(-1);
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            changeCalendarMonth(1);
+        });
+    }
+
+    if (detailCloseBtn) {
+        detailCloseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeCalendarDetailModal();
+        });
+    }
+
+    if (detailDeleteBtn) {
+        detailDeleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteSelectedCalendarRecord();
+        });
+    }
+
+    if (detailModal) {
+        detailModal.addEventListener('click', (e) => {
+            if (e.target === detailModal) {
+                closeCalendarDetailModal();
+            }
         });
     }
 });

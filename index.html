@@ -161,11 +161,21 @@
             </div>
         </div>
 
-        <!-- History / Archives Section -->
+        <!-- History / Archives Section (Calendar View) -->
         <div class="glass-card history-card" id="history-section">
-            <h3 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> 지나온 하루 기록장</h3>
-            <div class="history-timeline" id="history-timeline">
-                <div class="no-history-msg">아직 지나온 하루의 기록이 없습니다. 매일 다짐과 회고를 남기면 여기에 기록이 채워집니다.</div>
+            <h3 class="section-title"><i class="fa-solid fa-calendar-days"></i> 지나온 하루 기록장</h3>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button id="calendar-prev-btn" class="calendar-nav-btn" title="이전 달"><i class="fa-solid fa-chevron-left"></i></button>
+                    <span id="calendar-title" class="calendar-title">2026년 6월</span>
+                    <button id="calendar-next-btn" class="calendar-nav-btn" title="다음 달"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="calendar-weekdays">
+                    <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+                </div>
+                <div id="calendar-grid" class="calendar-grid">
+                    <!-- Calendar cells rendered dynamically by app.js -->
+                </div>
             </div>
         </div>
 
@@ -201,6 +211,26 @@
 
                 <button type="submit" class="primary-btn">설정 변경 저장</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Calendar Detail Modal -->
+    <div id="calendar-detail-modal" class="calendar-detail-overlay hidden">
+        <div class="calendar-detail-content glass-card">
+            <div class="calendar-detail-header">
+                <span id="detail-date" class="calendar-detail-date">2026. 06. 04</span>
+            </div>
+            <div class="calendar-detail-body">
+                <div id="detail-resolution-container" class="calendar-detail-resolution">
+                    <i id="detail-resolution-icon" class="fa-regular fa-circle"></i>
+                    <span id="detail-resolution-text">오늘의 다짐이 없습니다.</span>
+                </div>
+                <div id="detail-diary" class="calendar-detail-diary">작성된 회고록이 없습니다.</div>
+            </div>
+            <div class="calendar-detail-footer">
+                <button id="detail-delete-btn" class="calendar-detail-delete-btn"><i class="fa-solid fa-trash-can"></i> 삭제</button>
+                <button id="detail-close-btn" class="calendar-detail-close-btn">닫기</button>
+            </div>
         </div>
     </div>
 
