@@ -533,9 +533,8 @@ function openCalendarDetailModal(dateStr, record) {
         if (dateMatches.length > 0) {
             ddayContainer.classList.remove('hidden');
             ddayList.innerHTML = dateMatches.map(item => {
-                return `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                return `<div style="display: flex; align-items: center; gap: 8px;">
                     <span>• ${escapeHtml(item.title)}</span>
-                    <span style="font-size: 10px; color: #00f2fe; background: rgba(0, 242, 254, 0.1); padding: 2px 6px; border-radius: 8px; font-weight: 700; border: 1px solid rgba(0, 242, 254, 0.15); white-space: nowrap;">목표일 달성!</span>
                 </div>`;
             }).join('');
         } else {
