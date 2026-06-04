@@ -436,9 +436,10 @@ function renderHistoryCalendar() {
             cell.appendChild(flag);
         }
         
-        // Check if date is in the past or today for editing
+        // Check if date is in the past or today for editing OR has a D-Day (including future)
         const cellDate = new Date(currentCalendarYear, currentCalendarMonth, d);
-        if (cellDate <= todayObj) {
+        const hasDDay = dateMatches.length > 0;
+        if (cellDate <= todayObj || hasDDay) {
             cell.classList.add('editable-day');
             cell.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -540,6 +541,36 @@ function openCalendarDetailModal(dateStr, record) {
         } else {
             ddayContainer.classList.add('hidden');
             ddayList.innerHTML = '';
+        }
+    }
+
+    // Hide inputs and save/delete buttons for future dates
+    const todayObj = new Date();
+    todayObj.setHours(0, 0, 0, 0);
+    const checkDate = new Date(dateStr);
+    checkDate.setHours(0, 0, 0, 0);
+    const isFuture = checkDate > todayObj;
+    
+    const resContainer = document.getElementById('detail-resolution-container');
+    const diaryContainer = document.querySelector('.detail-diary-container');
+    const saveBtn = document.getElementById('detail-save-btn');
+    const deleteBtn = document.getElementById('detail-delete-btn');
+    
+    if (isFuture) {
+        if (resContainer) resContainer.style.display = 'none';
+        if (diaryContainer) diaryContainer.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (deleteBtn) deleteBtn.style.display = 'none';
+    } else {
+        if (resContainer) resContainer.style.display = '';
+        if (diaryContainer) diaryContainer.style.display = '';
+        if (saveBtn) saveBtn.style.display = '';
+        if (deleteBtn) {
+            if (record.resolution || record.diary) {
+                deleteBtn.style.display = '';
+            } else {
+                deleteBtn.style.display = 'none';
+            }
         }
     }
     
