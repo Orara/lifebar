@@ -522,6 +522,27 @@ function openCalendarDetailModal(dateStr, record) {
     diaryTextarea.value = record.diary || '';
     
     updateDetailModalCheckUI();
+    
+    // Render D-Days in detail modal if there are any matching D-Days on this date
+    const ddayContainer = document.getElementById('detail-dday-container');
+    const ddayList = document.getElementById('detail-dday-list');
+    if (ddayContainer && ddayList) {
+        const ddays = loadDDays();
+        const dateMatches = ddays.filter(item => item.targetDate === dateStr);
+        if (dateMatches.length > 0) {
+            ddayContainer.classList.remove('hidden');
+            ddayList.innerHTML = dateMatches.map(item => {
+                return `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <span>• ${escapeHtml(item.title)}</span>
+                    <span style="font-size: 10px; color: #00f2fe; background: rgba(0, 242, 254, 0.1); padding: 2px 6px; border-radius: 8px; font-weight: 700; border: 1px solid rgba(0, 242, 254, 0.15); white-space: nowrap;">목표일 달성!</span>
+                </div>`;
+            }).join('');
+        } else {
+            ddayContainer.classList.add('hidden');
+            ddayList.innerHTML = '';
+        }
+    }
+    
     modal.classList.remove('hidden');
 }
 

@@ -163,8 +163,8 @@
                 <!-- Inline Add Form (Hidden by default, toggled by add button) -->
                 <div id="dday-add-form" class="hidden" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.12); display: flex; flex-direction: column; gap: 10px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <input type="text" id="dday-input-title" placeholder="목표명 (예: 시험)" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: white; font-size: 12px; outline: none; width: 100%;" maxlength="30">
-                        <input type="date" id="dday-input-date" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: white; font-size: 12px; outline: none; width: 100%;">
+                        <input type="text" id="dday-input-title" placeholder="목표명 (예: 시험)" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: white; font-size: 12px; outline: none; width: 100%; font-family: var(--font-main);" maxlength="30">
+                        <input type="date" id="dday-input-date" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: white; font-size: 12px; outline: none; width: 100%; font-family: var(--font-main);">
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 8px;">
                         <button id="dday-cancel-add-btn" class="secondary-btn" style="padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: 700; width: auto; height: auto; min-height: 0;">취소</button>
@@ -286,6 +286,16 @@
                 <span id="detail-date" class="calendar-detail-date">2026. 06. 04</span>
             </div>
             <div class="calendar-detail-body">
+                <!-- D-Day Information for this day -->
+                <div id="detail-dday-container" class="hidden" style="display: flex; flex-direction: column; gap: 6px; padding: 12px; background: rgba(0, 242, 254, 0.06); border: 1px solid rgba(0, 242, 254, 0.15); border-radius: 12px; margin-bottom: 8px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #00f2fe; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-flag"></i> <span>오늘의 디데이 (D-Day)</span>
+                    </div>
+                    <div id="detail-dday-list" style="font-size: 13px; font-weight: 600; color: white; display: flex; flex-direction: column; gap: 4px;">
+                        <!-- D-Day items will be rendered here -->
+                    </div>
+                </div>
+
                 <!-- Checkbox + Input for Resolution -->
                 <div id="detail-resolution-container" class="calendar-detail-resolution">
                     <button id="detail-resolution-check-btn" class="resolution-check-btn" title="완료 표시"><i id="detail-resolution-icon" class="fa-regular fa-circle"></i></button>

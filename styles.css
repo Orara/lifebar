@@ -1284,3 +1284,17 @@ body {
     filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.6));
 }
 
+/* Custom date picker styling to ensure soft font matching our theme */
+input[type="date"] {
+    font-family: var(--font-main);
+}
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+    font-family: var(--font-main);
+}
+
+
