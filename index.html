@@ -213,14 +213,40 @@
                 </div>
                 
                 <!-- Calendar statistics -->
-                <div class="calendar-stats">
-                    <div class="cal-stat-item">
-                        <span class="cal-stat-label">이달의 다짐 달성</span>
-                        <span id="cal-stat-completed" class="cal-stat-value">0일 / 0일</span>
+                <div class="calendar-stats" style="display: flex; align-items: center; justify-content: space-around; gap: 20px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px; margin-top: 16px;">
+                    <!-- Circular Progress Chart -->
+                    <div class="stats-chart-wrapper" style="position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center;">
+                        <svg width="80" height="80" viewBox="0 0 80 80">
+                            <!-- Background Circle -->
+                            <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.06)" stroke-width="6" fill="transparent" />
+                            <!-- Foreground Progress Circle -->
+                            <circle id="stats-chart-circle" cx="40" cy="40" r="34" stroke="url(#chart-glow-grad)" stroke-width="6" fill="transparent"
+                                stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" transform="rotate(-90 40 40)"
+                                style="transition: stroke-dashoffset 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);" />
+                            <!-- Gradients -->
+                            <defs>
+                                <linearGradient id="chart-glow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#28c76f" />
+                                    <stop offset="100%" stop-color="#81fbb8" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <span id="stats-chart-percent" style="position: absolute; font-family: var(--font-alt); font-size: 14px; font-weight: 800; color: #28c76f; text-shadow: 0 0 10px rgba(40, 199, 111, 0.4);">0%</span>
                     </div>
-                    <div class="cal-stat-item">
-                        <span class="cal-stat-label">이달의 다짐 달성률</span>
-                        <span id="cal-stat-ratio" class="cal-stat-value">0.0%</span>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px; flex: 1;">
+                        <div class="cal-stat-item" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; border-right: none;">
+                            <span class="cal-stat-label" style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">다짐 계획일</span>
+                            <span id="cal-stat-recorded" class="cal-stat-value" style="font-family: var(--font-alt); font-size: 14px; font-weight: 800; color: #ffffff;">0일</span>
+                        </div>
+                        <div class="cal-stat-item" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; border-right: none; margin-top: 0;">
+                            <span class="cal-stat-label" style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">완료한 다짐</span>
+                            <span id="cal-stat-completed" class="cal-stat-value" style="font-family: var(--font-alt); font-size: 14px; font-weight: 800; color: #28c76f;">0일</span>
+                        </div>
+                        <div class="cal-stat-item" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; border-right: none; margin-top: 0; align-items: center;">
+                            <span class="cal-stat-label" style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">평균 다짐 달성률</span>
+                            <span id="cal-stat-ratio" class="cal-stat-value" style="font-family: var(--font-alt); font-size: 14px; font-weight: 800; color: #81fbb8;">0.0%</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -231,6 +257,20 @@
             <button id="share-text-btn" class="secondary-btn"><i class="fa-solid fa-copy"></i> <span>결과 텍스트 복사</span></button>
             <button id="export-img-btn" class="accent-btn"><i class="fa-brands fa-instagram"></i> <span>인스타 스토리용 저장</span></button>
         </div>
+
+        <!-- Dashboard Footer -->
+        <footer class="dashboard-footer" style="margin-top: 48px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px; padding-bottom: 24px; text-align: center; font-size: 11px; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 4px;">
+                <span style="font-weight: 700; color: var(--text-secondary);">나의 인생 진척도 v2.0.0</span>
+                <span>•</span>
+                <span>개인정보 보관 정책: 100% 로컬 브라우저 저장</span>
+                <span>•</span>
+                <a href="#" id="footer-privacy-btn" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;">개인정보 처리방침</a>
+            </div>
+            <div>
+                &copy; 2026 Life Progress Bar. All rights reserved. 본 웹 애플리케이션의 모든 데이터는 개인 기기에 암호화/로컬 저장되어 유출로부터 완벽히 보호됩니다.
+            </div>
+        </footer>
     </div>
 
     <!-- Settings Modal -->
@@ -261,10 +301,12 @@
                 <button type="submit" class="primary-btn">설정 변경 저장</button>
             </form>
 
-            <!-- Data Management (Backup / Restore) -->
-            <div class="settings-data-actions">
-                <button id="backup-data-btn" class="secondary-btn"><i class="fa-solid fa-download"></i> <span>데이터 백업</span></button>
-                <button id="restore-data-btn" class="secondary-btn"><i class="fa-solid fa-upload"></i> <span>데이터 복원</span></button>
+            <!-- Data Management (Backup / Restore / CSV / PDF) -->
+            <div class="settings-data-actions" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 20px;">
+                <button id="backup-data-btn" class="secondary-btn" style="padding: 10px 14px; font-size: 11px; border-radius: 20px;"><i class="fa-solid fa-download"></i> <span>설정 백업 (.json)</span></button>
+                <button id="restore-data-btn" class="secondary-btn" style="padding: 10px 14px; font-size: 11px; border-radius: 20px;"><i class="fa-solid fa-upload"></i> <span>설정 복원 (.json)</span></button>
+                <button id="export-csv-btn" class="secondary-btn" style="padding: 10px 14px; font-size: 11px; border-radius: 20px;"><i class="fa-solid fa-file-csv"></i> <span>기록 CSV 다운로드</span></button>
+                <button id="print-pdf-btn" class="secondary-btn" style="padding: 10px 14px; font-size: 11px; border-radius: 20px;"><i class="fa-solid fa-print"></i> <span>일기장 인쇄 / PDF</span></button>
                 <input type="file" id="restore-file-input" accept=".json" style="display: none;">
             </div>
 
@@ -315,6 +357,49 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Aesthetic Ambient Music Player (Floating widget) -->
+    <div id="ambient-player-widget" style="position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+        <!-- Expanded Panel (Hidden by default) -->
+        <div id="ambient-panel" class="glass-card hidden" style="width: 250px; padding: 18px; display: flex; flex-direction: column; gap: 12px; transform-origin: bottom right; transition: var(--transition-smooth); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 800; color: #b800ff; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-music"></i> <span>집중용 백색소음</span></span>
+                <span id="ambient-track-status" style="font-size: 10px; color: var(--text-muted);">정지됨</span>
+            </div>
+            
+            <!-- Track Selection Buttons -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="ambient-track-btn" data-track="rain" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 12px; color: white; text-align: left; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition-smooth); width: 100%;">
+                    <i class="fa-solid fa-cloud-showers-heavy" style="color: #00f2fe; width: 14px;"></i> <span>🌧️ 포근한 빗소리</span>
+                </button>
+                <button class="ambient-track-btn" data-track="lofi" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 12px; color: white; text-align: left; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition-smooth); width: 100%;">
+                    <i class="fa-solid fa-guitar" style="color: #ffd3a5; width: 14px;"></i> <span>🎹 감성 로파이 비트</span>
+                </button>
+                <button class="ambient-track-btn" data-track="campfire" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 12px; color: white; text-align: left; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition-smooth); width: 100%;">
+                    <i class="fa-solid fa-fire" style="color: #ff6b8b; width: 14px;"></i> <span>🔥 따뜻한 모닥불</span>
+                </button>
+            </div>
+            
+            <!-- Controls (Play/Pause & Volume) -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+                <button id="ambient-play-toggle-btn" style="width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--grad-btn); color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: var(--transition-smooth); box-shadow: 0 4px 10px rgba(184,0,255,0.3);" disabled>
+                    <i class="fa-solid fa-play"></i>
+                </button>
+                <div style="display: flex; flex-direction: column; flex-grow: 1; gap: 4px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted);">
+                        <span>볼륨</span>
+                        <span id="ambient-vol-label">50%</span>
+                    </div>
+                    <input type="range" id="ambient-volume-slider" min="0" max="1" step="0.05" value="0.5" style="width: 100%; accent-color: #b800ff; cursor: pointer; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; border: none;">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toggle Button -->
+        <button id="ambient-toggle-widget-btn" style="width: 48px; height: 48px; border-radius: 50%; background: var(--glass-bg); border: 1px solid var(--glass-border); color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: var(--glass-shadow); transition: var(--transition-smooth); font-size: 18px;" title="백색소음 켜기/끄기">
+            <i class="fa-solid fa-music"></i>
+        </button>
     </div>
 
     <!-- html2canvas Library via CDN (Used for high quality Instagram Stories capture) -->

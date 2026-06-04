@@ -1297,4 +1297,33 @@ input[type="date"]::-webkit-datetime-edit-year-field {
     font-family: var(--font-main);
 }
 
+/* Cozy Ambient Music Player styles */
+.ambient-track-btn {
+    transition: var(--transition-smooth);
+}
+.ambient-track-btn:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-1px);
+}
+.ambient-track-btn.active {
+    background: rgba(184, 0, 255, 0.15) !important;
+    border-color: rgba(184, 0, 255, 0.4) !important;
+    box-shadow: 0 0 10px rgba(184, 0, 255, 0.2);
+}
+@keyframes musicSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+#ambient-toggle-widget-btn.playing i {
+    animation: musicSpin 4s infinite linear;
+    color: #b800ff;
+    text-shadow: 0 0 8px rgba(184, 0, 255, 0.6);
+}
+.dashboard-footer a:hover {
+    color: #ffffff !important;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+
 

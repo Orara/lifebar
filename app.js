@@ -466,9 +466,11 @@ function renderHistoryCalendar() {
 }
 
 function updateCalendarStats() {
+    const recordedEl = document.getElementById('cal-stat-recorded');
     const completedEl = document.getElementById('cal-stat-completed');
     const ratioEl = document.getElementById('cal-stat-ratio');
-    if (!completedEl || !ratioEl) return;
+    const chartCircle = document.getElementById('stats-chart-circle');
+    const chartPercent = document.getElementById('stats-chart-percent');
     
     const history = loadHistory();
     let totalRecorded = 0;
@@ -486,9 +488,19 @@ function updateCalendarStats() {
         }
     }
     
-    completedEl.textContent = `${totalCompleted}일 / ${totalRecorded}일`;
     const ratio = totalRecorded > 0 ? (totalCompleted / totalRecorded) * 100 : 0.0;
-    ratioEl.textContent = `${ratio.toFixed(1)}%`;
+    
+    if (recordedEl) recordedEl.textContent = `${totalRecorded}일`;
+    if (completedEl) completedEl.textContent = `${totalCompleted}일`;
+    if (ratioEl) ratioEl.textContent = `${ratio.toFixed(1)}%`;
+    
+    // Update SVG Progress Ring
+    if (chartCircle && chartPercent) {
+        const circumference = 213.6;
+        const offset = circumference - (ratio / 100) * circumference;
+        chartCircle.style.strokeDashoffset = offset;
+        chartPercent.textContent = `${Math.round(ratio)}%`;
+    }
 }
 
 function changeCalendarMonth(offset) {
@@ -1124,6 +1136,245 @@ function getSkyGradientForIG() {
 }
 
 // ==========================================================================
+// 5b. Premium Features (Ambient Player, CSV/PDF Exports)
+// ==========================================================================
+let ambientAudio = null;
+let currentAmbientTrack = null;
+const AMB_TRACKS = {
+    rain: 'https://archive.org/download/rain_loop/rain_loop.mp3',
+    lofi: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    campfire: 'https://archive.org/download/fireplace-sound-effect/fireplace-sound-effect.mp3'
+};
+
+function playAmbientTrack(trackName) {
+    if (ambientAudio) {
+        ambientAudio.pause();
+    }
+    
+    currentAmbientTrack = trackName;
+    ambientAudio = new Audio(AMB_TRACKS[trackName]);
+    ambientAudio.loop = true;
+    
+    const slider = document.getElementById('ambient-volume-slider');
+    if (slider) {
+        ambientAudio.volume = parseFloat(slider.value);
+    }
+    
+    // Update UI active states
+    const trackBtns = document.querySelectorAll('.ambient-track-btn');
+    trackBtns.forEach(btn => {
+        if (btn.getAttribute('data-track') === trackName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    const playBtn = document.getElementById('ambient-play-toggle-btn');
+    if (playBtn) {
+        playBtn.disabled = false;
+        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    }
+    
+    const statusLabel = document.getElementById('ambient-track-status');
+    if (statusLabel) {
+        const trackTitles = { rain: '🌧️ 빗소리 재생 중', lofi: '🎹 로파이 재생 중', campfire: '🔥 모닥불 재생 중' };
+        statusLabel.textContent = trackTitles[trackName] || '재생 중';
+    }
+    
+    // Start spin animation on floating button
+    const floatingBtn = document.getElementById('ambient-toggle-widget-btn');
+    if (floatingBtn) {
+        floatingBtn.classList.add('playing');
+    }
+    
+    ambientAudio.play().catch(err => {
+        console.error("Audio playback failed:", err);
+        alert("오디오 재생에 실패했습니다. 네트워크 연결 상태를 확인해 주세요.");
+    });
+}
+
+function toggleAmbientPlay() {
+    if (!ambientAudio) return;
+    
+    const playBtn = document.getElementById('ambient-play-toggle-btn');
+    const statusLabel = document.getElementById('ambient-track-status');
+    const floatingBtn = document.getElementById('ambient-toggle-widget-btn');
+    
+    if (ambientAudio.paused) {
+        ambientAudio.play();
+        if (playBtn) playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        if (floatingBtn) floatingBtn.classList.add('playing');
+        if (statusLabel) {
+            const trackTitles = { rain: '🌧️ 빗소리 재생 중', lofi: '🎹 로파이 재생 중', campfire: '🔥 모닥불 재생 중' };
+            statusLabel.textContent = trackTitles[currentAmbientTrack] || '재생 중';
+        }
+    } else {
+        ambientAudio.pause();
+        if (playBtn) playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+        if (floatingBtn) floatingBtn.classList.remove('playing');
+        if (statusLabel) statusLabel.textContent = '일시 정지됨';
+    }
+}
+
+function exportToCSV() {
+    const history = loadHistory();
+    const dates = Object.keys(history).sort();
+    
+    if (dates.length === 0) {
+        alert("내보낼 기록이 없습니다. 먼저 다짐이나 일기를 작성해 주세요.");
+        return;
+    }
+    
+    // CSV Header (UTF-8 BOM to prevent Korean character corruption in Excel)
+    let csvContent = "\uFEFF"; 
+    csvContent += "날짜,다짐 완료 여부,오늘의 다짐,하루 회고록\n";
+    
+    dates.forEach(date => {
+        const record = history[date];
+        const completed = record.completed ? "완료" : "미완료";
+        const resolution = record.resolution ? record.resolution.replace(/"/g, '""') : "";
+        const diary = record.diary ? record.diary.replace(/"/g, '""') : "";
+        
+        csvContent += `"${date}","${completed}","${resolution}","${diary}"\n`;
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `lifebar_diary_export_${getTodayDateString().replace(/-/g, '')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function printDiaryToPDF() {
+    const history = loadHistory();
+    const dates = Object.keys(history).sort();
+    
+    if (dates.length === 0) {
+        alert("인쇄할 기록이 없습니다. 먼저 다짐이나 일기를 작성해 주세요.");
+        return;
+    }
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("팝업이 차단되었습니다. 팝업 차단을 해제하고 다시 시도해 주세요.");
+        return;
+    }
+    
+    let htmlContent = `
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <title>나의 인생 기록장 - 일기장 PDF 출력</title>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&display=swap" rel="stylesheet">
+        <style>
+            body {
+                font-family: 'Noto Serif KR', serif;
+                padding: 40px;
+                color: #222;
+                line-height: 1.8;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            .header {
+                text-align: center;
+                border-bottom: 2px solid #333;
+                padding-bottom: 20px;
+                margin-bottom: 40px;
+            }
+            .header h1 {
+                font-size: 28px;
+                margin: 0 0 10px 0;
+                font-weight: 700;
+            }
+            .header p {
+                font-size: 14px;
+                color: #666;
+                margin: 0;
+            }
+            .entry {
+                margin-bottom: 40px;
+                page-break-inside: avoid;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 20px;
+            }
+            .entry-date {
+                font-size: 18px;
+                font-weight: 700;
+                color: #000;
+                margin-bottom: 10px;
+                border-left: 4px solid #333;
+                padding-left: 10px;
+            }
+            .entry-resolution {
+                font-size: 14px;
+                font-weight: bold;
+                color: #555;
+                margin-bottom: 10px;
+                background: #f9f9f9;
+                padding: 8px 12px;
+                border-radius: 4px;
+                display: inline-block;
+            }
+            .entry-resolution.completed::after {
+                content: " (달성)";
+                color: green;
+            }
+            .entry-diary {
+                font-size: 15px;
+                white-space: pre-wrap;
+                color: #333;
+                text-align: justify;
+            }
+            @media print {
+                body { padding: 20px; }
+                .no-print { display: none; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="no-print" style="background: #f0f0f0; padding: 15px; text-align: center; margin-bottom: 30px; border-radius: 8px; font-family: sans-serif;">
+            <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">인쇄 및 PDF 저장 창이 열렸습니다.</p>
+            <button onclick="window.print()" style="padding: 8px 20px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">인쇄 / PDF로 저장</button>
+            <button onclick="window.close()" style="padding: 8px 15px; background: #ccc; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">창 닫기</button>
+        </div>
+        
+        <div class="header">
+            <h1>⏳ 나의 인생 기록장</h1>
+            <p>나의 하루, 한 달, 일 년, 그리고 평생의 흐름 속에서 남긴 소중한 회고록</p>
+        </div>
+    `;
+    
+    dates.forEach(date => {
+        const record = history[date];
+        const completedClass = record.completed ? "completed" : "";
+        const resHtml = record.resolution ? `<div class="entry-resolution ${completedClass}">오늘의 다짐: ${escapeHtml(record.resolution)}</div>` : "";
+        const diaryHtml = record.diary ? `<div class="entry-diary">${escapeHtml(record.diary)}</div>` : "<div class=\"entry-diary\" style=\"color: #999; font-style: italic;\">일기 기록 없음</div>";
+        
+        htmlContent += `
+        <div class="entry">
+            <div class="entry-date">${date.replace(/-/g, '. ')}</div>
+            ${resHtml}
+            ${diaryHtml}
+        </div>
+        `;
+    });
+    
+    htmlContent += `
+    </body>
+    </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+}
+
+// ==========================================================================
 // 6. Initialize & DOM Listeners
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -1484,4 +1735,80 @@ document.addEventListener('DOMContentLoaded', () => {
             renderHistoryCalendar();
         });
     }
+
+    // 14. CSV / PDF Export Event Listeners
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    const printPdfBtn = document.getElementById('print-pdf-btn');
+    const footerPrivacyBtn = document.getElementById('footer-privacy-btn');
+    
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            exportToCSV();
+        });
+    }
+    
+    if (printPdfBtn) {
+        printPdfBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            printDiaryToPDF();
+        });
+    }
+    
+    if (footerPrivacyBtn) {
+        footerPrivacyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert("🔒 개인정보 처리방침 및 안내:\n\n'나의 인생 진척도'는 사용자의 생년월일, 예상 수명, 오늘의 다짐, 작성 일기 등 어떠한 데이터도 외부 서버로 전송하지 않습니다.\n\n모든 정보는 오직 사용자의 웹 브라우저 로컬 저장소(localStorage)에만 프라이빗하게 보관되며, 브라우저 캐시를 지우거나 초기화 버튼을 누르면 완전히 영구 삭제됩니다.\n\n안심하고 인생을 채워나가세요!");
+        });
+    }
+
+    // 15. Ambient White Noise Player Event Listeners
+    const ambToggleBtn = document.getElementById('ambient-toggle-widget-btn');
+    const ambPanel = document.getElementById('ambient-panel');
+    const ambPlayBtn = document.getElementById('ambient-play-toggle-btn');
+    const ambVolSlider = document.getElementById('ambient-volume-slider');
+    const ambVolLabel = document.getElementById('ambient-vol-label');
+    const ambTrackBtns = document.querySelectorAll('.ambient-track-btn');
+    
+    if (ambToggleBtn && ambPanel) {
+        ambToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            ambPanel.classList.toggle('hidden');
+        });
+        
+        // Hide panel when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!ambPanel.classList.contains('hidden') && !ambPanel.contains(e.target) && e.target !== ambToggleBtn) {
+                ambPanel.classList.add('hidden');
+            }
+        });
+    }
+    
+    if (ambPlayBtn) {
+        ambPlayBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleAmbientPlay();
+        });
+    }
+    
+    if (ambVolSlider && ambVolLabel) {
+        ambVolSlider.addEventListener('input', (e) => {
+            const vol = parseFloat(e.target.value);
+            if (ambientAudio) {
+                ambientAudio.volume = vol;
+            }
+            ambVolLabel.textContent = `${Math.round(vol * 100)}%`;
+        });
+    }
+    
+    ambTrackBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const track = btn.getAttribute('data-track');
+            playAmbientTrack(track);
+        });
+    });
 });
