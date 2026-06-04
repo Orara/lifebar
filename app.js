@@ -650,7 +650,7 @@ async function sha256(message) {
 
 function initVisitorCounter() {
     if (!sessionStorage.getItem('lifebar-visited')) {
-        fetch('https://api.counterapi.dev/v1/lifebar-orara/visits/up')
+        fetch('https://api.counterapi.dev/v1/lifebar-orara/visits/up?cb=' + Date.now())
             .then(res => res.json())
             .then(data => {
                 sessionStorage.setItem('lifebar-visited', 'true');
@@ -670,7 +670,7 @@ function revealVisitorCount() {
     adminSection.classList.remove('hidden');
     localStorage.setItem('lifebar-admin-unlocked', 'true');
     
-    fetch('https://api.counterapi.dev/v1/lifebar-orara/visits')
+    fetch('https://api.counterapi.dev/v1/lifebar-orara/visits?cb=' + Date.now())
         .then(res => res.json())
         .then(data => {
             if (data && data.count !== undefined) {
