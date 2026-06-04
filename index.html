@@ -60,6 +60,15 @@
                 <span class="brand-name">Life Progress</span>
             </div>
             <div class="header-actions">
+                <div class="lang-select-container" style="position: relative;">
+                    <button id="lang-btn" class="icon-btn" title="언어 변경"><i class="fa-solid fa-globe"></i></button>
+                    <div id="lang-dropdown" class="lang-dropdown hidden">
+                        <button type="button" class="lang-option" data-lang="ko">🇰🇷 한국어</button>
+                        <button type="button" class="lang-option" data-lang="en">🇺🇸 English</button>
+                        <button type="button" class="lang-option" data-lang="ja">🇯🇵 日本語</button>
+                        <button type="button" class="lang-option" data-lang="zh">🇨🇳 简体中文</button>
+                    </div>
+                </div>
                 <button id="settings-btn" class="icon-btn" title="설정 변경"><i class="fa-solid fa-sliders"></i></button>
                 <button id="reset-btn" class="icon-btn" title="초기화"><i class="fa-solid fa-arrow-rotate-left"></i></button>
             </div>
@@ -180,7 +189,7 @@
             <div class="glass-card resolution-card">
                 <h3 class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <span><i class="fa-solid fa-pen-nib"></i> 오늘의 한 줄 다짐</span>
-                    <span id="streak-badge" class="streak-badge hidden"><i class="fa-solid fa-fire"></i> <span id="streak-count">0</span>일 연속 달성 중!</span>
+                    <span id="streak-badge" class="streak-badge hidden"><i class="fa-solid fa-fire"></i> <span id="streak-text">0일 연속 달성 중!</span></span>
                 </h3>
                 <div class="resolution-input-container">
                     <button id="resolution-complete-btn" class="resolution-check-btn" title="완료 표시"><i class="fa-regular fa-circle"></i></button>

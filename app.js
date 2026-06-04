@@ -1,4 +1,671 @@
 // ==========================================================================
+// 0. Multilingual Translation System
+// ==========================================================================
+const translations = {
+    ko: {
+        onboardingTitle: "나의 인생 진척도",
+        onboardingSubtitle: "나의 하루, 한 달, 일 년, 그리고 평생의 흘러가는 순간을 마주해 보세요.",
+        labelBirthDate: "태어난 날짜",
+        labelExpectancyAge: "예상 수명 (나이)",
+        privacyNotice: "개인정보 보호 안내: 생년월일과 회고록 등 모든 데이터는 인터넷 서버에 절대 전송되거나 저장되지 않으며, 오직 사용자의 브라우저(localStorage)에만 안전하게 보관됩니다.",
+        btnOpenDashboard: "인생 진척도 열기",
+        btnSettingsTitle: "설정 변경",
+        btnResetTitle: "초기화",
+        btnLangTitle: "언어 변경",
+        cardTodayTitle: "오늘 하루",
+        cardTodayDesc: "오늘이 흐르는 중",
+        cardMonthTitle: "이번 달",
+        cardMonthDesc: "이번 달의 흐름",
+        cardYearTitle: "올해",
+        cardYearDesc: "올해가 지나가는 중",
+        cardLifeTitle: "내 인생",
+        cardLifeDesc: "나의 평생진척률",
+        statLivedDaysLabel: "살아온 일수 (Days)",
+        statLeftDaysLabel: "남은 일수 (Days)",
+        ddayBoardTitle: "나의 디데이 (D-Day)",
+        ddayAddBtn: "추가",
+        ddayEmptyMsg: "등록된 디데이가 없습니다. 우측 상단의 추가 버튼을 눌러보세요!",
+        ddayInputTitlePlaceholder: "목표명 (예: 시험)",
+        ddayCancelBtn: "취소",
+        ddaySaveBtn: "등록",
+        resolutionTitle: "오늘의 한 줄 다짐",
+        resolutionStreakSuffix: "일 연속 달성 중!",
+        resolutionInputPlaceholder: "오늘 하루 집중할 단 한 가지 목표를 적어보세요...",
+        resolutionHint: "달성했다면 왼쪽의 원을 눌러 완료 표시를 해보세요! 다음 날이 되면 기록장으로 보관됩니다.",
+        diaryTitle: "오늘 하루 회고록",
+        diaryInputPlaceholder: "오늘 흘러간 시간 동안 느꼈던 솔직한 생각을 자유롭게 남겨보세요. 실시간으로 브라우저에 저장됩니다...",
+        archiveTitle: "지나온 하루 기록장",
+        weekdays: ["일", "월", "화", "수", "목", "금", "토"],
+        calendarPrevTitle: "이전 달",
+        calendarNextTitle: "다음 달",
+        calendarStatPlanned: "다짐 계획일",
+        calendarStatCompleted: "완료한 다짐",
+        calendarStatAverage: "평균 다짐 달성률",
+        btnShareText: "결과 텍스트 복사",
+        btnExportInstagram: "인스타 스토리용 저장",
+        footerTitle: "나의 인생 진척도 v2.0.0",
+        footerPrivacyPolicy: "개인정보 보관 정책: 100% 로컬 브라우저 저장",
+        footerPrivacyLink: "개인정보 처리방침",
+        footerCopyright: "© 2026 Life Progress Bar. All rights reserved. 본 웹 애플리케이션의 모든 데이터는 개인 기기에 암호화/로컬 저장되어 유출로부터 완벽히 보호됩니다.",
+        settingsTitle: "나의 인생 설정",
+        settingsDesc: "생년월일과 예상 수명을 언제든 수정할 수 있습니다.",
+        settingsWarning: "기기를 변경하거나 브라우저 쿠키/캐시를 지우면 설정값이 초기화될 수 있습니다.",
+        settingsSaveBtn: "설정 변경 저장",
+        btnBackup: "설정 백업 (.json)",
+        btnRestore: "설정 복원 (.json)",
+        btnExportCsv: "기록 CSV 다운로드",
+        btnPrintPdf: "일기장 인쇄 / PDF",
+        adminVisitsLabel: "누적 방문자 수",
+        detailDdayTitle: "오늘의 디데이 (D-Day)",
+        detailResolutionPlaceholder: "이날의 다짐을 기록해 보세요...",
+        detailDiaryLabel: "하루 회고록",
+        detailDiaryPlaceholder: "이날 흘러간 시간 동안 느꼈던 생각을 자유롭게 적어보세요...",
+        btnDelete: "삭제",
+        btnClose: "닫기",
+        btnSave: "저장",
+        musicPlayerTitle: "집중용 백색소음",
+        musicTrackRain: "🌧️ 포근한 빗소리",
+        musicTrackLofi: "🎹 감성 로파이 비트",
+        musicTrackCampfire: "🔥 따뜻한 모닥불",
+        musicVolumeLabel: "볼륨",
+        musicToggleTitle: "백색소음 켜기/끄기",
+        musicStateStopped: "정지됨",
+        musicStatePlaying: "재생 중",
+        musicStatePaused: "일시 정지",
+        unitDay: "일",
+        unitAge: "세",
+        dynamicMonthProgress: "{month}월 진척도",
+        dynamicYearProgress: "{year}년 진척도",
+        dynamicLifeRemaining: "남은 수명: 약 {days}일",
+        dynamicLifeTargetMet: "목표 수명에 도달했습니다!",
+        dynamicVisitorCount: "{count} 회",
+        dynamicVisitorFailed: "조회 실패",
+        dynamicVisitorPWFailed: "비밀번호 오동작",
+        dynamicVisitorAdmin: "관리자 활성",
+        alertResetConfirm: "정말 모든 설정을 초기화하시겠습니까? 다짐 및 일기 데이터가 완전히 지워집니다.",
+        alertBackupReady: "데이터 백업 파일이 다운로드됩니다.",
+        alertBackupFail: "백업할 데이터가 없습니다. 먼저 인생 설정을 완료해 주세요.",
+        alertRestoreSuccess: "데이터 복원이 완료되었습니다!",
+        alertRestoreFail: "올바른 백업 파일이 아닙니다.",
+        alertCaptureFail: "이미지 캡처 과정에서 문제가 발생했습니다.",
+        alertDeleteConfirm: "이 날의 기록을 완전히 삭제하시겠습니까?",
+        alertDdayDeleteConfirm: "이 디데이를 삭제하시겠습니까?",
+        alertPrivacyText: "🔒 개인정보 처리방침 및 안내:\n\n'나의 인생 진척도'는 사용자의 생년월일, 예상 수명, 오늘의 다짐, 작성 일기 등 어떠한 데이터도 외부 서버로 전송하지 않습니다.\n\n모든 정보는 오직 사용자의 웹 브라우저 로컬 저장소(localStorage)에만 프라이빗하게 보관되며, 브라우저 캐시를 지우거나 초기화 버튼을 누르면 완전히 영구 삭제됩니다.\n\n안심하고 인생을 채워나가세요!",
+        alertDdayTitleRequired: "디데이 제목을 입력해 주세요.",
+        alertDdayDateRequired: "디데이 날짜를 선택해 주세요.",
+        alertShareCopied: "인생 진척도 결과 텍스트가 클립보드에 복사되었습니다! SNS나 카카오톡에 자유롭게 공유해 보세요.",
+        alertPasswordIncorrect: "비밀번호가 올바르지 않습니다.",
+        alertPopupBlocked: "팝업이 차단되었습니다. 팝업 차단을 해제하고 다시 시도해 주세요.",
+        alertNoHistory: "기록이 존재하지 않습니다. 먼저 기록을 작성해 주세요.",
+        shareReportTitle: "${dict.shareReportTitle}",
+        shareToday: "오늘",
+        shareMonth: "이번 달",
+        shareYear: "올해",
+        shareLife: "내 인생",
+        shareDaysLived: "살아온 날",
+        shareDaysLeft: "남은 날",
+        shareStreakSuffix: "일 연속 다짐 실천 중!",
+        shareHashtags: "${dict.shareHashtags}",
+        streakFormat: "{streak}일 연속 달성 중!"
+    },
+    en: {
+        onboardingTitle: "My Life Progress Bar",
+        onboardingSubtitle: "Face the passing moments of your day, month, year, and entire life.",
+        labelBirthDate: "Date of Birth",
+        labelExpectancyAge: "Life Expectancy (Age)",
+        privacyNotice: "Privacy Notice: All data, including your birthday and diaries, is never sent to or stored on any server. It is saved 100% locally and safely inside your browser's localStorage.",
+        btnOpenDashboard: "Open Life Progress",
+        btnSettingsTitle: "Settings",
+        btnResetTitle: "Reset All",
+        btnLangTitle: "Change Language",
+        cardTodayTitle: "Today",
+        cardTodayDesc: "Today is passing by",
+        cardMonthTitle: "This Month",
+        cardMonthDesc: "Monthly flow",
+        cardYearTitle: "This Year",
+        cardYearDesc: "Year is passing by",
+        cardLifeTitle: "My Life",
+        cardLifeDesc: "Lifetime progress",
+        statLivedDaysLabel: "Days Lived",
+        statLeftDaysLabel: "Days Remaining",
+        ddayBoardTitle: "My D-Days",
+        ddayAddBtn: "Add",
+        ddayEmptyMsg: "No D-Days registered. Click the Add button at the top right!",
+        ddayInputTitlePlaceholder: "Target (e.g., Exam)",
+        ddayCancelBtn: "Cancel",
+        ddaySaveBtn: "Register",
+        resolutionTitle: "Today's Resolution",
+        resolutionStreakSuffix: " Day Streak!",
+        resolutionInputPlaceholder: "Write the single most important goal to focus on today...",
+        resolutionHint: "Click the circle on the left to check it off when completed! It will be archived tomorrow.",
+        diaryTitle: "Today's Retrospective Diary",
+        diaryInputPlaceholder: "Share your honest thoughts about the passing hours today. It is saved in real-time in your browser...",
+        archiveTitle: "Daily Archive Logbook",
+        weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        calendarPrevTitle: "Prev Month",
+        calendarNextTitle: "Next Month",
+        calendarStatPlanned: "Planned Days",
+        calendarStatCompleted: "Completed Goals",
+        calendarStatAverage: "Avg Completion Rate",
+        btnShareText: "Copy Text Report",
+        btnExportInstagram: "Save for Instagram Story",
+        footerTitle: "My Life Progress Bar v2.0.0",
+        footerPrivacyPolicy: "Privacy Policy: 100% Local Browser Storage Only",
+        footerPrivacyLink: "Privacy Policy",
+        footerCopyright: "© 2026 Life Progress Bar. All rights reserved. All data is encrypted and saved locally on your device, fully protected from external leaks.",
+        settingsTitle: "My Life Settings",
+        settingsDesc: "You can modify your birthdate and life expectancy at any time.",
+        settingsWarning: "Clearing cookies/cache or changing devices may reset your configuration values.",
+        settingsSaveBtn: "Save Settings",
+        btnBackup: "Backup Settings (.json)",
+        btnRestore: "Restore Settings (.json)",
+        btnExportCsv: "Download History CSV",
+        btnPrintPdf: "Print Diary / PDF",
+        adminVisitsLabel: "Total Visitors",
+        detailDdayTitle: "Today's D-Days",
+        detailResolutionPlaceholder: "Record your resolution for this day...",
+        detailDiaryLabel: "Retrospective Diary",
+        detailDiaryPlaceholder: "Record your thoughts about how this day passed...",
+        btnDelete: "Delete",
+        btnClose: "Close",
+        btnSave: "Save",
+        musicPlayerTitle: "Ambient Sounds for Focus",
+        musicTrackRain: "🌧️ Cozy Rain Sound",
+        musicTrackLofi: "🎹 Lofi Music Beats",
+        musicTrackCampfire: "🔥 Warm Campfire",
+        musicVolumeLabel: "Volume",
+        musicToggleTitle: "Toggle Ambient Sound Mixer",
+        musicStateStopped: "Stopped",
+        musicStatePlaying: "Playing",
+        musicStatePaused: "Paused",
+        unitDay: " Day(s)",
+        unitAge: " Years Old",
+        dynamicMonthProgress: "{month} Month Progress",
+        dynamicYearProgress: "{year} Year Progress",
+        dynamicLifeRemaining: "Remaining: ~{days} days",
+        dynamicLifeTargetMet: "You have met your target life expectancy!",
+        dynamicVisitorCount: "{count} visits",
+        dynamicVisitorFailed: "Load Failed",
+        dynamicVisitorPWFailed: "Invalid PW",
+        dynamicVisitorAdmin: "Admin Active",
+        alertResetConfirm: "Are you sure you want to reset all settings? All resolutions and diary entries will be permanently deleted.",
+        alertBackupReady: "Your data backup file is ready to download.",
+        alertBackupFail: "No data to backup. Please complete your life settings first.",
+        alertRestoreSuccess: "Data restoration completed successfully!",
+        alertRestoreFail: "Invalid backup file structure.",
+        alertCaptureFail: "An error occurred during image capture.",
+        alertDeleteConfirm: "Do you want to delete this day's records?",
+        alertDdayDeleteConfirm: "Are you sure you want to delete this D-Day?",
+        alertPrivacyText: "🔒 Privacy Policy & Info:\n\n'My Life Progress Bar' does not collect or transmit any of your personal data, birthdate, life expectancy, resolutions, or diary entries to external servers.\n\nAll data is stored strictly inside your local web browser storage (localStorage). Clearing browser cookies/cache or clicking 'Reset All' will permanently delete all stored data.\n\nFill your life with peace of mind!",
+        alertDdayTitleRequired: "Please enter a D-Day title.",
+        alertDdayDateRequired: "Please select a target date.",
+        alertShareCopied: "Life progress report copied to clipboard! Share it on social media or chat apps.",
+        alertPasswordIncorrect: "Incorrect password.",
+        alertPopupBlocked: "Popup was blocked. Please allow popups and try again.",
+        alertNoHistory: "No history found. Please write a resolution or diary first.",
+        shareReportTitle: "⏳ My Life Progress Bar Report ⏳",
+        shareToday: "Today",
+        shareMonth: "This Month",
+        shareYear: "This Year",
+        shareLife: "My Life",
+        shareDaysLived: "Days Lived",
+        shareDaysLeft: "Days Left",
+        shareStreakSuffix: " Day Streak!",
+        shareHashtags: "#LifeProgressBar #Motivation",
+        streakFormat: "{streak} Day Streak!"
+    },
+    ja: {
+        onboardingTitle: "マイライフ進捗バー",
+        onboardingSubtitle: "今日、今月、今年、そして人生の流れる瞬間と向き合ってみましょう。",
+        labelBirthDate: "生年月日",
+        labelExpectancyAge: "想定寿命（年齢）",
+        privacyNotice: "個人情報保護について: 生年月日や日記等のすべてのデータは、外部サーバーに送信されたり保存されたりすることはありません。すべてユーザーのブラウザ（localStorage）に安全にローカル保存されます。",
+        btnOpenDashboard: "進捗バーを開く",
+        btnSettingsTitle: "設定変更",
+        btnResetTitle: "初期化",
+        btnLangTitle: "言語変更",
+        cardTodayTitle: "今日の進捗",
+        cardTodayDesc: "今日の時間が流れています",
+        cardMonthTitle: "今月の進捗",
+        cardMonthDesc: "今月の時間の流れ",
+        cardYearTitle: "今年の進捗",
+        cardYearDesc: "今年が過ぎていきます",
+        cardLifeTitle: "人生の進捗",
+        cardLifeDesc: "一生の進捗率",
+        statLivedDaysLabel: "生きてきた日数 (Days)",
+        statLeftDaysLabel: "残りの日数 (Days)",
+        ddayBoardTitle: "マイD-Day目標",
+        ddayAddBtn: "追加",
+        ddayEmptyMsg: "登録されたD-Dayはありません。右上の追加ボタンを押してみてください！",
+        ddayInputTitlePlaceholder: "目標名（例：試験）",
+        ddayCancelBtn: "キャンセル",
+        ddaySaveBtn: "登録",
+        resolutionTitle: "今日の一言目標",
+        resolutionStreakSuffix: "日連続達成中！",
+        resolutionInputPlaceholder: "今日一日で集中すべき唯一の目標を書いてみましょう...",
+        resolutionHint: "達成したら、左側の円を押して完了マークをつけてみましょう！翌日になると自動で記録帳へ保存されます。",
+        diaryTitle: "今日一日の振り返り日記",
+        diaryInputPlaceholder: "今日流れた時間の中で感じた率直な思いを自由に書いてみましょう。ブラウザにリアルタイムで自動保存されます...",
+        archiveTitle: "過ぎ去った日々の記録帳",
+        weekdays: ["日", "月", "火", "水", "木", "金", "土"],
+        calendarPrevTitle: "前月",
+        calendarNextTitle: "次月",
+        calendarStatPlanned: "目標設定日数",
+        calendarStatCompleted: "達成した目標日数",
+        calendarStatAverage: "平均目標達成率",
+        btnShareText: "結果テキストをコピー",
+        btnExportInstagram: "インスタストーリー用保存",
+        footerTitle: "マイライフ進捗バー v2.0.0",
+        footerPrivacyPolicy: "個人情報保護方針: 100%ローカルブラウザ保存",
+        footerPrivacyLink: "個人情報処理方針",
+        footerCopyright: "© 2026 Life Progress Bar. All rights reserved. 本ウェブアプリのすべてのデータは、個人端末に暗号化およびローカル保存され、外部漏洩から完全に保護されます。",
+        settingsTitle: "マイライフ設定",
+        settingsDesc: "生年月日と想定寿命はいつでも変更可能です。",
+        settingsWarning: "ブラウザキャッシュの削除やデバイスの変更により、設定値が初期化される場合があります。",
+        settingsSaveBtn: "設定を保存",
+        btnBackup: "設定をバックアップ (.json)",
+        btnRestore: "設定を復元 (.json)",
+        btnExportCsv: "記録をCSVで保存",
+        btnPrintPdf: "日記帳を印刷 / PDF",
+        adminVisitsLabel: "累計訪問者数",
+        detailDdayTitle: "今日のD-Day目標",
+        detailResolutionPlaceholder: "この日の目標を記録する...",
+        detailDiaryLabel: "振り返り日記",
+        detailDiaryPlaceholder: "この日どんな一日だったか、思いを記録する...",
+        btnDelete: "削除",
+        btnClose: "閉じる",
+        btnSave: "保存",
+        musicPlayerTitle: "集中用ホワイトノイズ",
+        musicTrackRain: "🌧️ 心地よい雨の音",
+        musicTrackLofi: "🎹 癒しのLofiミュージック",
+        musicTrackCampfire: "🔥 暖かな焚き火",
+        musicVolumeLabel: "音量",
+        musicToggleTitle: "ホワイトノイズミキサーを開く",
+        musicStateStopped: "停止中",
+        musicStatePlaying: "再生中",
+        musicStatePaused: "一時停止中",
+        unitDay: " 日",
+        unitAge: " 歳",
+        dynamicMonthProgress: "{month}月の進捗率",
+        dynamicYearProgress: "{year}年の進捗率",
+        dynamicLifeRemaining: "残り寿命: 約 {days}日",
+        dynamicLifeTargetMet: "目標とする想定寿命に到達しました！",
+        dynamicVisitorCount: "{count} 回",
+        dynamicVisitorFailed: "読み込み失敗",
+        dynamicVisitorPWFailed: "PWエラー",
+        dynamicVisitorAdmin: "管理者有効",
+        alertResetConfirm: "本当にすべての設定を初期化しますか？目標や日記のデータが完全に削除されます。",
+        alertBackupReady: "バックアップ用ファイルをダウンロードします。",
+        alertBackupFail: "バックアップするデータがありません。先に人生設定を完了してください。",
+        alertRestoreSuccess: "データの復元が完了しました！",
+        alertRestoreFail: "有効なバックアップファイルではありません。",
+        alertCaptureFail: "画像キャプチャ中にエラーが発生しました。",
+        alertDeleteConfirm: "この日の記録を削除しますか？",
+        alertDdayDeleteConfirm: "このD-Day目標を削除しますか？",
+        alertPrivacyText: "🔒 個人情報処理方針とご案内:\n\n'マイライフ進捗バー'は、ユーザーの生年月日、想定寿命、今日の目標、日記など、いかなるデータも外部サーバーに送信することはありません。\n\nすべてのデータはユーザーのウェブブラウザのローカルストレージ（localStorage）にのみ保存され、キャッシュを消去するか初期化を行うと完全に削除されます。\n\nどうぞ安心してお使いください！",
+        alertDdayTitleRequired: "D-Dayの目標名を入力してください。",
+        alertDdayDateRequired: "D-Dayの目標日付を選択してください。",
+        alertShareCopied: "人生進捗レポートをクリップボードにコピーしました！SNS等で共有してください。",
+        alertPasswordIncorrect: "パスワードが正しくありません。",
+        alertPopupBlocked: "ポップアップがブロックされました。ポップアップを許可してもう一度お試しください。",
+        alertNoHistory: "記録がありません。先に目標や日記を入力してください。",
+        shareReportTitle: "⏳ マイライフ進捗レポート ⏳",
+        shareToday: "今日",
+        shareMonth: "今月",
+        shareYear: "今年",
+        shareLife: "人生",
+        shareDaysLived: "生きてきた日",
+        shareDaysLeft: "残りの日",
+        shareStreakSuffix: "日連続目標達成中！",
+        shareHashtags: "#ライフ進捗バー #モチベーション",
+        streakFormat: "{streak}日連続目標達成中！"
+    },
+    zh: {
+        onboardingTitle: "我的人生进度条",
+        onboardingSubtitle: "面对你的一天、一个月、一年以及整个人生流逝的瞬间。",
+        labelBirthDate: "出生日期",
+        labelExpectancyAge: "预期寿命（岁）",
+        privacyNotice: "隐私政策说明：出生日期及日记等所有数据均不会发送或存储到外部服务器，而是100%安全地保存在您本人的浏览器本地存储（localStorage）中。",
+        btnOpenDashboard: "开启人生进度",
+        btnSettingsTitle: "更改设置",
+        btnResetTitle: "重置",
+        btnLangTitle: "切换语言",
+        cardTodayTitle: "今日进度",
+        cardTodayDesc: "今天正在流逝中",
+        cardMonthTitle: "本月进度",
+        cardMonthDesc: "本月的流逝",
+        cardYearTitle: "今年进度",
+        cardYearDesc: "今年正流逝中",
+        cardLifeTitle: "人生进度",
+        cardLifeDesc: "一生总进度率",
+        statLivedDaysLabel: "已度过天数 (Days)",
+        statLeftDaysLabel: "剩余天数 (Days)",
+        ddayBoardTitle: "我的倒计时 (D-Day)",
+        ddayAddBtn: "添加",
+        ddayEmptyMsg: "暂无倒计时项目。点击右上角“添加”按钮开始创建！",
+        ddayInputTitlePlaceholder: "目标名（例：考试）",
+        ddayCancelBtn: "取消",
+        ddaySaveBtn: "保存",
+        resolutionTitle: "今日一句话目标",
+        resolutionStreakSuffix: "天连续达成中！",
+        resolutionInputPlaceholder: "写下今天你需要专注的这一个目标...",
+        resolutionHint: "如果达成了，点击左侧的圆圈将其标记为已完成！明天起它会自动归档到记录本中。",
+        diaryTitle: "今日复盘日记",
+        diaryInputPlaceholder: "自由记录今天这段流逝光阴中的所思所想。会实时保存到浏览器中...",
+        archiveTitle: "逝去时光记录本",
+        weekdays: ["日", "一", "二", "三", "四", "五", "六"],
+        calendarPrevTitle: "上个月",
+        calendarNextTitle: "下个月",
+        calendarStatPlanned: "计划天数",
+        calendarStatCompleted: "达成天数",
+        calendarStatAverage: "平均目标达成率",
+        btnShareText: "复制文本报告",
+        btnExportInstagram: "保存为 Instagram Story",
+        footerTitle: "我的人生进度条 v2.0.0",
+        footerPrivacyPolicy: "数据保存政策：100% 浏览器本地存储",
+        footerPrivacyLink: "隐私政策",
+        footerCopyright: "© 2026 Life Progress Bar. All rights reserved. 本网页应用的所有数据均加密并保存在您的个人设备中，完全免受泄露风险。",
+        settingsTitle: "我的人生设置",
+        settingsDesc: "您可以随时修改您的出生日期和预期寿命。",
+        settingsWarning: "清除浏览器缓存或更换设备可能会导致设置值重置。",
+        settingsSaveBtn: "保存设置修改",
+        btnBackup: "备份数据 (.json)",
+        btnRestore: "恢复数据 (.json)",
+        btnExportCsv: "下载历史记录 CSV",
+        btnPrintPdf: "打印日记本 / PDF",
+        adminVisitsLabel: "累计访问人数",
+        detailDdayTitle: "今日目标 (D-Day)",
+        detailResolutionPlaceholder: "记录这天的目标...",
+        detailDiaryLabel: "复盘日记",
+        detailDiaryPlaceholder: "自由记录这天所想所感...",
+        btnDelete: "删除",
+        btnClose: "关闭",
+        btnSave: "保存",
+        musicPlayerTitle: "专注白噪音",
+        musicTrackRain: "🌧️ 舒适的雨声",
+        musicTrackLofi: "🎹 舒缓的Lofi律动",
+        musicTrackCampfire: "🔥 温暖的篝火声",
+        musicVolumeLabel: "音量",
+        musicToggleTitle: "开启白噪音混音面板",
+        musicStateStopped: "已停止",
+        musicStatePlaying: "播放中",
+        musicStatePaused: "暂停中",
+        unitDay: " 天",
+        unitAge: " 岁",
+        dynamicMonthProgress: "{month}月进度率",
+        dynamicYearProgress: "{year}年进度率",
+        dynamicLifeRemaining: "剩余寿命：约 {days}天",
+        dynamicLifeTargetMet: "您已达到设定的预期寿命目标！",
+        dynamicVisitorCount: "{count} 次",
+        dynamicVisitorFailed: "加载失败",
+        dynamicVisitorPWFailed: "密码错误",
+        dynamicVisitorAdmin: "管理员激活",
+        alertResetConfirm: "您确定要重置所有设置吗？这会永久清除您所有的目标和日记数据。",
+        alertBackupReady: "备份文件准备下载。",
+        alertBackupFail: "没有可备份的数据。请先完成人生设置。",
+        alertRestoreSuccess: "数据已恢复完成！",
+        alertRestoreFail: "并非有效的备份文件。",
+        alertCaptureFail: "图片捕获过程中发生错误。",
+        alertDeleteConfirm: "您确定要删除这天的记录吗？",
+        alertDdayDeleteConfirm: "您确定要删除这个倒计时吗？",
+        alertPrivacyText: "🔒 隐私政策与声明:\n\n'我的人生进度条'不会将您的出生日期、预期寿命、今日目标、复盘日记等任何数据传输或上传到外部服务器。\n\n所有设置和记录仅保存在用户浏览器的本地存储（localStorage）中，清除缓存或点击重置将会彻底清除该数据。\n\n请放心记录您的人生足迹！",
+        alertDdayTitleRequired: "请输入倒计时目标名。",
+        alertDdayDateRequired: "请选择目标日期。",
+        alertShareCopied: "人生进度报告已复制到剪贴板！分享到社交媒体或聊天工具中吧。",
+        alertPasswordIncorrect: "密码不正确。",
+        alertPopupBlocked: "弹窗被拦截。请允许弹窗后重试。",
+        alertNoHistory: "没有可导出的记录。请先填写今日目标或复盘日记。",
+        shareReportTitle: "⏳ 我的人生进度条报告 ⏳",
+        shareToday: "今日",
+        shareMonth: "本月",
+        shareYear: "今年",
+        shareLife: "人生",
+        shareDaysLived: "已度过天数",
+        shareDaysLeft: "剩余天数",
+        shareStreakSuffix: "天连续目标达成中！",
+        shareHashtags: "#我的人生进度条 #自我提升",
+        streakFormat: "连续达成 {streak} 天！"
+    }
+};let currentLang = localStorage.getItem('lifebar-lang') || 'ko';
+
+function applyTranslations(lang) {
+    currentLang = lang;
+    localStorage.setItem('lifebar-lang', lang);
+    const dict = translations[lang] || translations.ko;
+    
+    // Onboarding
+    const onboardingTitle = document.querySelector('.onboarding-card h1.main-title');
+    if (onboardingTitle) onboardingTitle.textContent = dict.onboardingTitle;
+    
+    const onboardingSubtitle = document.querySelector('.onboarding-card p.subtitle');
+    if (onboardingSubtitle) onboardingSubtitle.textContent = dict.onboardingSubtitle;
+    
+    const labelBirthDate = document.querySelector('label[for="birth-date"]');
+    if (labelBirthDate) labelBirthDate.innerHTML = `<i class="fa-solid fa-cake-candles"></i> ${dict.labelBirthDate}`;
+    
+    const labelExpectancyAge = document.querySelector('label[for="expectancy-age"]');
+    if (labelExpectancyAge) labelExpectancyAge.innerHTML = `<i class="fa-solid fa-heart-pulse"></i> ${dict.labelExpectancyAge}`;
+    
+    const privacyNotice = document.querySelector('.onboarding-card .privacy-warning span');
+    if (privacyNotice) {
+        const parts = dict.privacyNotice.split(' 안내:');
+        if (parts.length >= 2) {
+            privacyNotice.innerHTML = `<i class="fa-solid fa-shield-halved"></i> <strong>${parts[0]} 안내:</strong>${parts[1]}`;
+        } else {
+            privacyNotice.textContent = dict.privacyNotice;
+        }
+    }
+    
+    const btnOpenDashboard = document.querySelector('#onboarding-form button[type="submit"] span');
+    if (btnOpenDashboard) btnOpenDashboard.textContent = dict.btnOpenDashboard;
+    
+    // Header
+    const settingsBtn = document.getElementById('settings-btn');
+    if (settingsBtn) settingsBtn.title = dict.btnSettingsTitle;
+    
+    const resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) resetBtn.title = dict.btnResetTitle;
+    
+    const langBtn = document.getElementById('lang-btn');
+    if (langBtn) langBtn.title = dict.btnLangTitle;
+    
+    // Cards titles
+    const cardTodayTitle = document.querySelector('#card-today .card-title');
+    if (cardTodayTitle) cardTodayTitle.innerHTML = `<i class="fa-solid fa-sun icon-today"></i> ${dict.cardTodayTitle}`;
+    
+    const descToday = document.getElementById('desc-today');
+    if (descToday) descToday.textContent = dict.cardTodayDesc;
+    
+    const cardMonthTitle = document.querySelector('#card-month .card-title');
+    if (cardMonthTitle) cardMonthTitle.innerHTML = `<i class="fa-solid fa-calendar-days icon-month"></i> ${dict.cardMonthTitle}`;
+    
+    const cardYearTitle = document.querySelector('#card-year .card-title');
+    if (cardYearTitle) cardYearTitle.innerHTML = `<i class="fa-solid fa-calendar icon-year"></i> ${dict.cardYearTitle}`;
+    
+    const cardLifeTitle = document.querySelector('#card-life .card-title');
+    if (cardLifeTitle) cardLifeTitle.innerHTML = `<i class="fa-solid fa-user icon-life"></i> ${dict.cardLifeTitle}`;
+    
+    // Stats Labels
+    const livedDaysLabel = document.querySelector('#stat-days-lived + .stat-label');
+    if (livedDaysLabel) livedDaysLabel.textContent = dict.statLivedDaysLabel;
+    
+    const leftDaysLabel = document.querySelector('#stat-days-left + .stat-label');
+    if (leftDaysLabel) leftDaysLabel.textContent = dict.statLeftDaysLabel;
+    
+    // D-Day Board
+    const ddayTitle = document.querySelector('#dday-card .dday-board-header h3 span');
+    if (ddayTitle) ddayTitle.textContent = dict.ddayBoardTitle;
+    
+    const ddayToggleBtn = document.getElementById('dday-toggle-add-btn');
+    if (ddayToggleBtn) {
+        const addForm = document.getElementById('dday-add-form');
+        const isHidden = !addForm || addForm.classList.contains('hidden');
+        ddayToggleBtn.innerHTML = isHidden ? `<i class="fa-solid fa-plus"></i> ${dict.ddayAddBtn}` : `<i class="fa-solid fa-xmark"></i> ${dict.ddayCancelBtn}`;
+    }
+    
+    const ddayEmpty = document.getElementById('dday-empty-message');
+    if (ddayEmpty) ddayEmpty.textContent = dict.ddayEmptyMsg;
+    
+    const ddayInputTitle = document.getElementById('dday-input-title');
+    if (ddayInputTitle) ddayInputTitle.placeholder = dict.ddayInputTitlePlaceholder;
+    
+    const ddayCancelAdd = document.getElementById('dday-cancel-add-btn');
+    if (ddayCancelAdd) ddayCancelAdd.textContent = dict.ddayCancelBtn;
+    
+    const ddaySaveAdd = document.getElementById('dday-save-add-btn');
+    if (ddaySaveAdd) ddaySaveAdd.textContent = dict.ddaySaveBtn;
+    
+    // Resolution
+    const resTitle = document.querySelector('.resolution-card .section-title span');
+    if (resTitle) resTitle.innerHTML = `<i class="fa-solid fa-pen-nib"></i> ${dict.resolutionTitle}`;
+    
+    const resInput = document.getElementById('resolution-input');
+    if (resInput) resInput.placeholder = dict.resolutionInputPlaceholder;
+    
+    const resHint = document.querySelector('.resolution-card .input-hint');
+    if (resHint) resHint.textContent = dict.resolutionHint;
+    
+    // Diary
+    const diaryTitle = document.querySelector('.diary-card .section-title');
+    if (diaryTitle) diaryTitle.innerHTML = `<i class="fa-solid fa-book-open"></i> ${dict.diaryTitle}`;
+    
+    const diaryInput = document.getElementById('diary-input');
+    if (diaryInput) diaryInput.placeholder = dict.diaryInputPlaceholder;
+    
+    // Archive calendar header & weekdays
+    const archiveTitle = document.querySelector('.history-card .section-title');
+    if (archiveTitle) archiveTitle.innerHTML = `<i class="fa-solid fa-calendar-days"></i> ${dict.archiveTitle}`;
+    
+    const calPrev = document.getElementById('calendar-prev-btn');
+    if (calPrev) calPrev.title = dict.calendarPrevTitle;
+    
+    const calNext = document.getElementById('calendar-next-btn');
+    if (calNext) calNext.title = dict.calendarNextTitle;
+    
+    const weekdaySpans = document.querySelectorAll('.calendar-weekdays span');
+    if (weekdaySpans.length >= 7) {
+        weekdaySpans.forEach((span, idx) => {
+            span.textContent = dict.weekdays[idx];
+        });
+    }
+    
+    // Calendar statistics labels
+    const plannedLabel = document.querySelector('#cal-stat-recorded').previousElementSibling;
+    if (plannedLabel) plannedLabel.textContent = dict.calendarStatPlanned;
+    
+    const completedLabel = document.querySelector('#cal-stat-completed').previousElementSibling;
+    if (completedLabel) completedLabel.textContent = dict.calendarStatCompleted;
+    
+    const avgLabel = document.querySelector('#cal-stat-ratio').previousElementSibling;
+    if (avgLabel) avgLabel.textContent = dict.calendarStatAverage;
+    
+    // Action buttons
+    const shareTextBtn = document.querySelector('#share-text-btn span');
+    if (shareTextBtn) shareTextBtn.textContent = dict.btnShareText;
+    
+    const exportImgBtn = document.querySelector('#export-img-btn span');
+    if (exportImgBtn) exportImgBtn.textContent = dict.btnExportInstagram;
+    
+    // Footer
+    const footerTitle = document.querySelector('.dashboard-footer div:nth-child(1) span:nth-child(1)');
+    if (footerTitle) footerTitle.textContent = dict.footerTitle;
+    
+    const footerPrivacyPolicy = document.querySelector('.dashboard-footer div:nth-child(1) span:nth-child(3)');
+    if (footerPrivacyPolicy) footerPrivacyPolicy.textContent = dict.footerPrivacyPolicy;
+    
+    const footerPrivacyBtn = document.getElementById('footer-privacy-btn');
+    if (footerPrivacyBtn) footerPrivacyBtn.textContent = dict.footerPrivacyLink;
+    
+    const footerCopyright = document.querySelector('.dashboard-footer div:nth-child(2)');
+    if (footerCopyright) footerCopyright.textContent = dict.footerCopyright;
+    
+    // Settings Modal
+    const settingsTitle = document.querySelector('#settings-modal h2');
+    if (settingsTitle) settingsTitle.textContent = dict.settingsTitle;
+    
+    const settingsDesc = document.querySelector('#settings-modal p.modal-desc');
+    if (settingsDesc) settingsDesc.textContent = dict.settingsDesc;
+    
+    const labelSetBirth = document.querySelector('label[for="settings-birth-date"]');
+    if (labelSetBirth) labelSetBirth.textContent = dict.labelBirthDate;
+    
+    const labelSetExp = document.querySelector('label[for="settings-expectancy-age"]');
+    if (labelSetExp) labelSetExp.textContent = dict.labelExpectancyAge;
+    
+    const setWarning = document.querySelector('#settings-modal .privacy-warning span');
+    if (setWarning) setWarning.textContent = dict.settingsWarning;
+    
+    const setSaveBtn = document.querySelector('#settings-form button[type="submit"]');
+    if (setSaveBtn) setSaveBtn.textContent = dict.settingsSaveBtn;
+    
+    const backupBtn = document.querySelector('#backup-data-btn span');
+    if (backupBtn) backupBtn.textContent = dict.btnBackup;
+    
+    const restoreBtn = document.querySelector('#restore-data-btn span');
+    if (restoreBtn) restoreBtn.textContent = dict.btnRestore;
+    
+    const exportCsv = document.querySelector('#export-csv-btn span');
+    if (exportCsv) exportCsv.textContent = dict.btnExportCsv;
+    
+    const printPdf = document.querySelector('#print-pdf-btn span');
+    if (printPdf) printPdf.textContent = dict.btnPrintPdf;
+    
+    const visitsLabel = document.querySelector('#admin-visits-section .admin-visits-label');
+    if (visitsLabel) visitsLabel.innerHTML = `<i class="fa-solid fa-users"></i> ${dict.adminVisitsLabel}`;
+    
+    // Detail Modal
+    const detailDdayTitle = document.querySelector('#calendar-detail-modal #detail-dday-container div:nth-child(1) span');
+    if (detailDdayTitle) detailDdayTitle.textContent = dict.detailDdayTitle;
+    
+    const detailResInput = document.getElementById('detail-resolution-input');
+    if (detailResInput) detailResInput.placeholder = dict.detailResolutionPlaceholder;
+    
+    const detailDiaryLabel = document.querySelector('label[for="detail-diary-textarea"]');
+    if (detailDiaryLabel) detailDiaryLabel.textContent = dict.detailDiaryLabel;
+    
+    const detailDiaryTextarea = document.getElementById('detail-diary-textarea');
+    if (detailDiaryTextarea) detailDiaryTextarea.placeholder = dict.detailDiaryPlaceholder;
+    
+    const detailDeleteBtn = document.getElementById('detail-delete-btn');
+    if (detailDeleteBtn) detailDeleteBtn.innerHTML = `<i class="fa-solid fa-trash-can"></i> ${dict.btnDelete}`;
+    
+    const detailCloseBtn = document.getElementById('detail-close-btn');
+    if (detailCloseBtn) detailCloseBtn.textContent = dict.btnClose;
+    
+    const detailSaveBtn = document.getElementById('detail-save-btn');
+    if (detailSaveBtn) detailSaveBtn.textContent = dict.btnSave;
+    
+    // Music Player
+    const playerTitle = document.querySelector('#ambient-panel div:nth-child(1) span:nth-child(1) span');
+    if (playerTitle) playerTitle.textContent = dict.musicPlayerTitle;
+    
+    const trackRain = document.querySelector('.ambient-track-btn[data-track="rain"] span');
+    if (trackRain) trackRain.textContent = dict.musicTrackRain;
+    
+    const trackLofi = document.querySelector('.ambient-track-btn[data-track="lofi"] span');
+    if (trackLofi) trackLofi.textContent = dict.musicTrackLofi;
+    
+    const trackCampfire = document.querySelector('.ambient-track-btn[data-track="campfire"] span');
+    if (trackCampfire) trackCampfire.textContent = dict.musicTrackCampfire;
+    
+    const volLabel = document.querySelector('#ambient-volume-slider').previousElementSibling.firstElementChild;
+    if (volLabel) volLabel.textContent = dict.musicVolumeLabel;
+    
+    const toggleBtn = document.getElementById('ambient-toggle-widget-btn');
+    if (toggleBtn) toggleBtn.title = dict.musicToggleTitle;
+    
+    // Update active dropdown item styles
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        if (opt.getAttribute('data-lang') === lang) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+    });
+}
+
+
+// ==========================================================================
 // 1. Particle Background Generator (Stardust Effect)
 // ==========================================================================
 function generateStardust() {
@@ -111,7 +778,7 @@ function calculateProgress() {
     
     const monthDisplay = document.getElementById('month-display');
     if (monthDisplay) {
-        monthDisplay.textContent = `${date}일 / ${totalDaysInMonth}일`;
+        const dict = translations[currentLang] || translations.ko; monthDisplay.textContent = `${date}${dict.unitDay} / ${totalDaysInMonth}${dict.unitDay}`;
     }
     const percentMonth = document.getElementById('percent-month');
     if (percentMonth) {
@@ -123,7 +790,7 @@ function calculateProgress() {
     }
     const descMonth = document.getElementById('desc-month');
     if (descMonth) {
-        descMonth.textContent = `${month + 1}월 진척도`;
+        descMonth.textContent = dict.dynamicMonthProgress.replace('{month}', month + 1);
     }
 
     // ----------------------------------------------------
@@ -141,7 +808,7 @@ function calculateProgress() {
     
     const yearDisplay = document.getElementById('year-display');
     if (yearDisplay) {
-        yearDisplay.textContent = `${passedDaysInYear}일 / ${totalDaysInYear}일`;
+        yearDisplay.textContent = `${passedDaysInYear}${dict.unitDay} / ${totalDaysInYear}${dict.unitDay}`;
     }
     const percentYear = document.getElementById('percent-year');
     if (percentYear) {
@@ -153,7 +820,7 @@ function calculateProgress() {
     }
     const descYear = document.getElementById('desc-year');
     if (descYear) {
-        descYear.textContent = `${year}년 진척도`;
+        descYear.textContent = dict.dynamicYearProgress.replace('{year}', year);
     }
 
     // ----------------------------------------------------
@@ -174,7 +841,7 @@ function calculateProgress() {
     
     const lifeDisplay = document.getElementById('life-display');
     if (lifeDisplay) {
-        lifeDisplay.textContent = `${elapsedAge.toFixed(2)}세 / ${expectancy}세`;
+        lifeDisplay.textContent = `${elapsedAge.toFixed(2)}${dict.unitAge} / ${expectancy}${dict.unitAge}`;
     }
     const percentLife = document.getElementById('percent-life');
     if (percentLife) {
@@ -202,9 +869,9 @@ function calculateProgress() {
     const descLife = document.getElementById('desc-life');
     if (descLife) {
         if (leftDays > 0) {
-            descLife.textContent = `남은 수명: 약 ${leftDays.toLocaleString('ko-KR')}일`;
+            descLife.textContent = dict.dynamicLifeRemaining.replace('{days}', leftDays.toLocaleString(currentLang));
         } else {
-            descLife.textContent = `목표 수명에 도달했습니다!`;
+            descLife.textContent = dict.dynamicLifeTargetMet;
         }
     }
 }
@@ -370,7 +1037,13 @@ function renderHistoryCalendar() {
     const calendarTitle = document.getElementById('calendar-title');
     if (!calendarGrid || !calendarTitle) return;
     
-    calendarTitle.textContent = `${currentCalendarYear}년 ${currentCalendarMonth + 1}월`;
+    if (currentLang === 'en') {
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        calendarTitle.textContent = `${monthNames[currentCalendarMonth]} ${currentCalendarYear}`;
+    } else {
+        const titleStr = `${currentCalendarYear}년 ${currentCalendarMonth + 1}월`;
+        calendarTitle.textContent = titleStr.replace('년', currentLang === 'ja' || currentLang === 'zh' ? '年' : '년').replace('월', currentLang === 'ja' || currentLang === 'zh' ? '月' : '월');
+    }
     
     calendarGrid.innerHTML = '';
     
@@ -490,8 +1163,8 @@ function updateCalendarStats() {
     
     const ratio = totalRecorded > 0 ? (totalCompleted / totalRecorded) * 100 : 0.0;
     
-    if (recordedEl) recordedEl.textContent = `${totalRecorded}일`;
-    if (completedEl) completedEl.textContent = `${totalCompleted}일`;
+    const dict = translations[currentLang] || translations.ko; if (recordedEl) recordedEl.textContent = `${totalRecorded}${dict.unitDay}`;
+    if (completedEl) completedEl.textContent = `${totalCompleted}${dict.unitDay}`;
     if (ratioEl) ratioEl.textContent = `${ratio.toFixed(1)}%`;
     
     // Update SVG Progress Ring
@@ -527,7 +1200,7 @@ function openCalendarDetailModal(dateStr, record) {
     detailModalCompletedState = record.completed || false;
     
     const dateObj = new Date(dateStr);
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const dict = translations[currentLang] || translations.ko; const weekdays = dict.weekdays;
     const dayOfWeek = weekdays[dateObj.getDay()];
     dateText.textContent = `${dateStr.replace(/-/g, '. ')} (${dayOfWeek})`;
     
@@ -646,7 +1319,7 @@ function closeCalendarDetailModal() {
 function deleteSelectedCalendarRecord() {
     if (!selectedDateForDelete) return;
     
-    if (confirm(`${selectedDateForDelete}의 기록을 완전히 삭제하시겠습니까?`)) {
+    const dict = translations[currentLang] || translations.ko; if (confirm(dict.alertDeleteConfirm)) {
         const history = loadHistory();
         delete history[selectedDateForDelete];
         saveHistory(history);
@@ -673,7 +1346,7 @@ function backupData() {
     });
     
     if (Object.keys(backupObj).length === 0) {
-        alert("백업할 데이터가 없습니다. 먼저 인생 설정을 완료해 주세요.");
+        const dict = translations[currentLang] || translations.ko; alert(dict.alertBackupFail);
         return;
     }
     
@@ -721,11 +1394,11 @@ function restoreData(file) {
                 localStorage.removeItem('aw-life-dday-list');
             }
             
-            alert("데이터 복원이 성공적으로 완료되었습니다! 페이지를 새로고침하여 적용합니다.");
+            const dict = translations[currentLang] || translations.ko; alert(dict.alertRestoreSuccess);
             window.location.reload();
             
         } catch (err) {
-            alert("데이터 복원에 실패했습니다: " + err.message);
+            const dict = translations[currentLang] || translations.ko; alert(dict.alertRestoreFail + ": " + err.message);
         }
     };
     reader.readAsText(file);
@@ -764,16 +1437,16 @@ function revealVisitorCount() {
         .then(res => res.json())
         .then(data => {
             if (data && data.value !== undefined) {
-                countEl.textContent = `${data.value.toLocaleString('ko-KR')} 명`;
+                const dict = translations[currentLang] || translations.ko; countEl.textContent = dict.dynamicVisitorCount.replace('{count}', data.value.toLocaleString(currentLang));
             } else if (data && data.error === 'Key not found') {
-                countEl.textContent = "0 명";
+                const dict = translations[currentLang] || translations.ko; countEl.textContent = dict.dynamicVisitorCount.replace('{count}', '0');
             } else {
-                countEl.textContent = "데이터 없음";
+                const dict = translations[currentLang] || translations.ko; countEl.textContent = dict.dynamicVisitorFailed;
             }
         })
         .catch(err => {
             console.error("Fetch counter error:", err);
-            countEl.textContent = "조회 실패";
+            const dict = translations[currentLang] || translations.ko; countEl.textContent = dict.dynamicVisitorFailed;
         });
 }
 
@@ -822,7 +1495,11 @@ function updateStreak() {
     }
     
     if (streak > 0) {
-        streakCountEl.textContent = streak;
+        const streakText = document.getElementById('streak-text');
+    if (streakText) {
+        const dict = translations[currentLang] || translations.ko;
+        streakText.textContent = dict.streakFormat.replace('{streak}', streak);
+    }
         streakBadge.classList.remove('hidden');
     } else {
         streakBadge.classList.add('hidden');
@@ -890,7 +1567,7 @@ function updateDDayCard() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    ddays.forEach(item => {
+    const dict = translations[currentLang] || translations.ko; ddays.forEach(item => {
         const targetDate = new Date(item.targetDate);
         targetDate.setHours(0, 0, 0, 0);
         
@@ -1115,7 +1792,7 @@ function generateInstagramStoryImage() {
         link.click();
     }).catch(err => {
         console.error("Failed to capture Instagram card:", err);
-        alert("이미지 캡처 과정에서 문제가 발생했습니다.");
+        const dict = translations[currentLang] || translations.ko; alert(dict.alertCaptureFail);
         document.body.removeChild(container);
     });
 }
@@ -1256,7 +1933,7 @@ function exportToCSV() {
     const dates = Object.keys(history).sort();
     
     if (dates.length === 0) {
-        alert("내보낼 기록이 없습니다. 먼저 다짐이나 일기를 작성해 주세요.");
+        const dict = translations[currentLang] || translations.ko; alert(dict.alertNoHistory);
         return;
     }
     
@@ -1289,13 +1966,13 @@ function printDiaryToPDF() {
     const dates = Object.keys(history).sort();
     
     if (dates.length === 0) {
-        alert("인쇄할 기록이 없습니다. 먼저 다짐이나 일기를 작성해 주세요.");
+        const dict = translations[currentLang] || translations.ko; alert(dict.alertNoHistory);
         return;
     }
     
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-        alert("팝업이 차단되었습니다. 팝업 차단을 해제하고 다시 시도해 주세요.");
+        const dict = translations[currentLang] || translations.ko; alert(dict.alertPopupBlocked);
         return;
     }
     
@@ -1502,7 +2179,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (hashedPassword === targetHash) {
                     revealVisitorCount();
                 } else {
-                    alert("비밀번호가 올바르지 않습니다.");
+                    const dict = translations[currentLang] || translations.ko; alert(dict.alertPasswordIncorrect);
                 }
             }
         });
@@ -1592,7 +2269,7 @@ document.addEventListener('DOMContentLoaded', () => {
 👉 사이트 주소: ${window.location.origin + window.location.pathname}`;
 
             navigator.clipboard.writeText(shareText).then(() => {
-                alert("인생 진척도 결과 텍스트가 클립보드에 복사되었습니다! SNS나 카카오톡에 자유롭게 공유해 보세요.");
+                const dict = translations[currentLang] || translations.ko; alert(dict.alertShareCopied);
             }).catch(err => {
                 console.error("Failed to copy text:", err);
             });
@@ -1738,12 +2415,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetDate = dateInput.value;
             
             if (!title) {
-                alert("디데이 제목을 입력해 주세요.");
+                const dict = translations[currentLang] || translations.ko; alert(dict.alertDdayTitleRequired);
                 titleInput.focus();
                 return;
             }
             if (!targetDate) {
-                alert("디데이 날짜를 선택해 주세요.");
+                const dict = translations[currentLang] || translations.ko; alert(dict.alertDdayDateRequired);
                 dateInput.focus();
                 return;
             }
@@ -1795,7 +2472,7 @@ document.addEventListener('DOMContentLoaded', () => {
         footerPrivacyBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            alert("🔒 개인정보 처리방침 및 안내:\n\n'나의 인생 진척도'는 사용자의 생년월일, 예상 수명, 오늘의 다짐, 작성 일기 등 어떠한 데이터도 외부 서버로 전송하지 않습니다.\n\n모든 정보는 오직 사용자의 웹 브라우저 로컬 저장소(localStorage)에만 프라이빗하게 보관되며, 브라우저 캐시를 지우거나 초기화 버튼을 누르면 완전히 영구 삭제됩니다.\n\n안심하고 인생을 채워나가세요!");
+            const dict = translations[currentLang] || translations.ko; alert(dict.alertPrivacyText);
         });
     }
 
@@ -1845,4 +2522,35 @@ document.addEventListener('DOMContentLoaded', () => {
             playAmbientTrack(track);
         });
     });
+
+    // Language select toggle
+    const langBtn = document.getElementById('lang-btn');
+    const langDropdown = document.getElementById('lang-dropdown');
+    if (langBtn && langDropdown) {
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langDropdown.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!langBtn.contains(e.target) && !langDropdown.contains(e.target)) {
+                langDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Connect Language Options
+        document.querySelectorAll('.lang-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const selectedLang = opt.getAttribute('data-lang');
+                console.log(`Language selected: ${selectedLang}`);
+                applyTranslations(selectedLang);
+                langDropdown.classList.add('hidden');
+            });
+        });
+    }
+
+    // Apply initial translation on start
+    applyTranslations(currentLang);
 });
