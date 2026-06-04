@@ -97,7 +97,7 @@ const translations = {
         alertPasswordIncorrect: "비밀번호가 올바르지 않습니다.",
         alertPopupBlocked: "팝업이 차단되었습니다. 팝업 차단을 해제하고 다시 시도해 주세요.",
         alertNoHistory: "기록이 존재하지 않습니다. 먼저 기록을 작성해 주세요.",
-        shareReportTitle: "${dict.shareReportTitle}",
+        shareReportTitle: "⏳ 나의 인생 진척도 리포트 ⏳",
         shareToday: "오늘",
         shareMonth: "이번 달",
         shareYear: "올해",
@@ -105,8 +105,10 @@ const translations = {
         shareDaysLived: "살아온 날",
         shareDaysLeft: "남은 날",
         shareStreakSuffix: "일 연속 다짐 실천 중!",
-        shareHashtags: "${dict.shareHashtags}",
-        streakFormat: "{streak}일 연속 달성 중!"
+        shareHashtags: "#인생진척도 #동기부여",
+        streakFormat: "{streak}일 연속 달성 중!",
+        labelStart: "시작",
+        labelTarget: "목표"
     },
     en: {
         onboardingTitle: "My Life Progress Bar",
@@ -212,7 +214,9 @@ const translations = {
         shareDaysLeft: "Days Left",
         shareStreakSuffix: " Day Streak!",
         shareHashtags: "#LifeProgressBar #Motivation",
-        streakFormat: "{streak} Day Streak!"
+        streakFormat: "{streak} Day Streak!",
+        labelStart: "Start",
+        labelTarget: "Target"
     },
     ja: {
         onboardingTitle: "マイライフ進捗バー",
@@ -318,7 +322,9 @@ const translations = {
         shareDaysLeft: "残りの日",
         shareStreakSuffix: "日連続目標達成中！",
         shareHashtags: "#ライフ進捗バー #モチベーション",
-        streakFormat: "{streak}日連続目標達成中！"
+        streakFormat: "{streak}日連続目標達成中！",
+        labelStart: "開始",
+        labelTarget: "目標"
     },
     zh: {
         onboardingTitle: "我的人生进度条",
@@ -424,7 +430,9 @@ const translations = {
         shareDaysLeft: "剩余天数",
         shareStreakSuffix: "天连续目标达成中！",
         shareHashtags: "#我的人生进度条 #自我提升",
-        streakFormat: "连续达成 {streak} 天！"
+        streakFormat: "连续达成 {streak} 天！",
+        labelStart: "开始",
+        labelTarget: "目标"
     }
 };let currentLang = localStorage.getItem('lifebar-lang') || 'ko';
 
@@ -666,6 +674,11 @@ function applyTranslations(lang) {
             opt.classList.remove('active');
         }
     });
+    
+    // Refresh dynamic boards to apply translations instantly
+    updateDDayCard();
+    renderHistoryCalendar();
+    updateStreak();
 }
 
 
@@ -897,13 +910,20 @@ function checkOnboardingState() {
     const onboarding = document.getElementById('onboarding-screen');
     const dashboard = document.getElementById('dashboard-screen');
     
+    const todayStr = new Date().toISOString().split('T')[0];
+    const settingsBirthInput = document.getElementById('settings-birth-date');
+    if (settingsBirthInput) settingsBirthInput.max = todayStr;
+    const birthInput = document.getElementById('birth-date');
+    if (birthInput) birthInput.max = todayStr;
+    
     if (birth && expectancy) {
         onboarding.classList.add('hidden');
         dashboard.classList.remove('hidden');
         
         // Populate inputs in settings
-        document.getElementById('settings-birth-date').value = birth;
-        document.getElementById('settings-expectancy-age').value = expectancy;
+        if (settingsBirthInput) settingsBirthInput.value = birth;
+        const settingsExpInput = document.getElementById('settings-expectancy-age');
+        if (settingsExpInput) settingsExpInput.value = expectancy;
         
         // Update D-Day Card and Streak Badge
         updateDDayCard();
@@ -918,10 +938,6 @@ function checkOnboardingState() {
         onboarding.classList.remove('hidden');
         dashboard.classList.add('hidden');
         clearInterval(updateIntervalId);
-        
-        // Set default max date to today in onboarding form
-        const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('birth-date').max = todayStr;
     }
 }
 
@@ -1632,8 +1648,8 @@ function updateDDayCard() {
                 <div class="progress-bar" style="width: ${pct}%; height: 100%; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); transition: width 0.5s ease;"></div>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);">
-                <span>시작: ${item.setDate.replace(/-/g, '. ')}</span>
-                <span>목표: ${item.targetDate.replace(/-/g, '. ')}</span>
+                <span>${dict.labelStart}: ${item.setDate.replace(/-/g, '. ')}</span>
+                <span>${dict.labelTarget}: ${item.targetDate.replace(/-/g, '. ')}</span>
             </div>
         `;
         
