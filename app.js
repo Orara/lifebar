@@ -640,6 +640,13 @@ function restoreData(file) {
     };
     reader.readAsText(file);
 }
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
 
 function initVisitorCounter() {
     if (!sessionStorage.getItem('lifebar-visited')) {
@@ -922,10 +929,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6b. Settings modal header click (Secret Admin panel)
     const settingsTitle = document.querySelector('#settings-modal h2');
     if (settingsTitle) {
-        settingsTitle.addEventListener('click', (e) => {
+        settingsTitle.addEventListener('click', async (e) => {
             settingsTitleClicks++;
             if (settingsTitleClicks >= 5) {
-                revealVisitorCount();
+                settingsTitleClicks = 0;
+                const passwordInput = prompt("관리자 비밀번호를 입력하세요:");
+                if (passwordInput === null) return;
+                
+                const hashedPassword = await sha256(passwordInput);
+                const targetHash = "ab7e67e9480cb9aecd206859cd28e942c5647ad85e6e3e5f1fb20783828ed190";
+                
+                if (hashedPassword === targetHash) {
+                    revealVisitorCount();
+                } else {
+                    alert("비밀번호가 올바르지 않습니다.");
+                }
             }
         });
     }
