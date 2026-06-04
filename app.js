@@ -1138,26 +1138,62 @@ function getSkyGradientForIG() {
 // ==========================================================================
 // 5b. Premium Features (Ambient Player, CSV/PDF Exports)
 // ==========================================================================
-let ambientAudio = null;
+let ytAudioPlayer = null;
 let currentAmbientTrack = null;
-const AMB_TRACKS = {
-    rain: 'https://archive.org/download/rain_loop/rain_loop.mp3',
-    lofi: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    campfire: 'https://archive.org/download/fireplace-sound-effect/fireplace-sound-effect.mp3'
+const YT_TRACKS = {
+    rain: 'O_ZiH-MlZZ0',      // Rain on Window (from window-to-the-world)
+    lofi: 'N3ur5Ey21zg',      // Ghibli Lofi Music (from window-to-the-world cartoon room!)
+    campfire: '3_gdxb7AyGo'   // Cozy Fireplace (from window-to-the-world)
+};
+
+// Dynamically load the YouTube Iframe Player API script
+(function loadYouTubeAPI() {
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    if (firstScriptTag) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    } else {
+        document.head.appendChild(tag);
+    }
+})();
+
+// YouTube Player Ready Callback
+window.onYouTubeIframeAPIReady = function() {
+    ytAudioPlayer = new YT.Player('yt-audio-player', {
+        height: '1',
+        width: '1',
+        videoId: 'N3ur5Ey21zg', // Default to Lofi
+        playerVars: {
+            autoplay: 0,
+            loop: 1,
+            playlist: 'N3ur5Ey21zg'
+        },
+        events: {
+            onReady: (event) => {
+                console.log("YouTube Ambient Player loaded.");
+                const playBtn = document.getElementById('ambient-play-toggle-btn');
+                if (playBtn) playBtn.disabled = false;
+            }
+        }
+    });
 };
 
 function playAmbientTrack(trackName) {
-    if (ambientAudio) {
-        ambientAudio.pause();
+    if (!ytAudioPlayer || typeof ytAudioPlayer.loadVideoById !== 'function') {
+        console.warn("YouTube player not ready yet.");
+        return;
     }
     
     currentAmbientTrack = trackName;
-    ambientAudio = new Audio(AMB_TRACKS[trackName]);
-    ambientAudio.loop = true;
+    ytAudioPlayer.loadVideoById({
+        videoId: YT_TRACKS[trackName],
+        suggestedQuality: 'small'
+    });
     
     const slider = document.getElementById('ambient-volume-slider');
     if (slider) {
-        ambientAudio.volume = parseFloat(slider.value);
+        ytAudioPlayer.setVolume(parseFloat(slider.value) * 100);
     }
     
     // Update UI active states
@@ -1187,22 +1223,20 @@ function playAmbientTrack(trackName) {
     if (floatingBtn) {
         floatingBtn.classList.add('playing');
     }
-    
-    ambientAudio.play().catch(err => {
-        console.error("Audio playback failed:", err);
-        alert("오디오 재생에 실패했습니다. 네트워크 연결 상태를 확인해 주세요.");
-    });
 }
 
 function toggleAmbientPlay() {
-    if (!ambientAudio) return;
+    if (!ytAudioPlayer || typeof ytAudioPlayer.getPlayerState !== 'function') return;
     
     const playBtn = document.getElementById('ambient-play-toggle-btn');
     const statusLabel = document.getElementById('ambient-track-status');
     const floatingBtn = document.getElementById('ambient-toggle-widget-btn');
     
-    if (ambientAudio.paused) {
-        ambientAudio.play();
+    const playerState = ytAudioPlayer.getPlayerState();
+    
+    // YT.PlayerState.PLAYING is 1
+    if (playerState !== 1) {
+        ytAudioPlayer.playVideo();
         if (playBtn) playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
         if (floatingBtn) floatingBtn.classList.add('playing');
         if (statusLabel) {
@@ -1210,7 +1244,7 @@ function toggleAmbientPlay() {
             statusLabel.textContent = trackTitles[currentAmbientTrack] || '재생 중';
         }
     } else {
-        ambientAudio.pause();
+        ytAudioPlayer.pauseVideo();
         if (playBtn) playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
         if (floatingBtn) floatingBtn.classList.remove('playing');
         if (statusLabel) statusLabel.textContent = '일시 정지됨';
@@ -1797,8 +1831,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ambVolSlider && ambVolLabel) {
         ambVolSlider.addEventListener('input', (e) => {
             const vol = parseFloat(e.target.value);
-            if (ambientAudio) {
-                ambientAudio.volume = vol;
+            if (ytAudioPlayer && typeof ytAudioPlayer.setVolume === 'function') {
+                ytAudioPlayer.setVolume(vol * 100);
             }
             ambVolLabel.textContent = `${Math.round(vol * 100)}%`;
         });
