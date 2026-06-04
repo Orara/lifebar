@@ -142,19 +142,34 @@
             </div>
         </div>
 
-        <!-- D-Day Card -->
-        <div class="glass-card dday-card hidden" id="dday-card" style="margin-bottom: 24px;">
+        <!-- D-Day Board Card -->
+        <div class="glass-card dday-card" id="dday-card" style="margin-bottom: 24px;">
             <div class="dday-content">
-                <div class="dday-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span class="dday-title" id="dday-display-title" style="font-weight: 700; font-size: 14px; color: var(--text-primary);"><i class="fa-solid fa-flag" style="color: #00f2fe; margin-right: 6px;"></i> 디데이</span>
-                    <span class="dday-badge" id="dday-display-days" style="font-size: 16px; font-weight: 800; color: #00f2fe; text-shadow: 0 0 10px rgba(0,242,254,0.3); background: rgba(0,242,254,0.1); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(0,242,254,0.2);">D-Day</span>
+                <div class="dday-board-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
+                    <h3 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-flag" style="color: #00f2fe;"></i> <span>나의 디데이 (D-Day)</span></h3>
+                    <button id="dday-toggle-add-btn" class="secondary-btn" style="padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; width: auto; min-height: 0; height: auto; border: 1px solid rgba(255,255,255,0.1);"><i class="fa-solid fa-plus"></i> 추가</button>
                 </div>
-                <div class="progress-bar-container" style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; width: 100%;">
-                    <div class="progress-bar" id="bar-dday" style="width: 0%; height: 100%; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); transition: width 0.8s ease;"></div>
+
+                <!-- D-Day List Container -->
+                <div id="dday-list-container" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 10px;">
+                    <!-- Items rendered dynamically by JS -->
                 </div>
-                <div class="dday-footer" style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px;">
-                    <span id="dday-start-date">설정일</span>
-                    <span id="dday-end-date">목표일</span>
+
+                <!-- Empty State Message -->
+                <div id="dday-empty-message" style="text-align: center; font-size: 12px; color: var(--text-muted); padding: 15px 0;">
+                    등록된 디데이가 없습니다. 우측 상단의 추가 버튼을 눌러보세요!
+                </div>
+
+                <!-- Inline Add Form (Hidden by default, toggled by add button) -->
+                <div id="dday-add-form" class="hidden" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.12); display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <input type="text" id="dday-input-title" placeholder="목표명 (예: 시험)" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: white; font-size: 12px; outline: none; width: 100%;" maxlength="30">
+                        <input type="date" id="dday-input-date" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: white; font-size: 12px; outline: none; width: 100%;">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                        <button id="dday-cancel-add-btn" class="secondary-btn" style="padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: 700; width: auto; height: auto; min-height: 0;">취소</button>
+                        <button id="dday-save-add-btn" class="primary-btn" style="padding: 6px 16px; border-radius: 15px; font-size: 11px; font-weight: 700; width: auto; height: auto; min-height: 0; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); border: none;">등록</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -236,18 +251,7 @@
                     <input type="number" id="settings-expectancy-age" min="1" max="150" required>
                 </div>
 
-                <div class="settings-divider" style="height: 1px; background: rgba(255,255,255,0.08); margin: 15px 0;"></div>
-                <h3 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; opacity: 0.85;"><i class="fa-solid fa-flag" style="color: #00f2fe; margin-right: 6px;"></i> 디데이 (D-Day) 설정</h3>
-                
-                <div class="input-group">
-                    <label for="settings-dday-title">디데이 목표명</label>
-                    <input type="text" id="settings-dday-title" placeholder="예: 중요한 시험, 버킷리스트 목표">
-                </div>
-                
-                <div class="input-group">
-                    <label for="settings-dday-date">목표 날짜</label>
-                    <input type="date" id="settings-dday-date">
-                </div>
+
 
                 <div class="privacy-warning">
                     <i class="fa-solid fa-shield-halved"></i>

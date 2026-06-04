@@ -1273,3 +1273,14 @@ body {
 .dday-card {
     padding: 20px;
 }
+
+/* Calendar D-Day Flag Style */
+.calendar-dday-flag {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    color: #00f2fe;
+    font-size: 8px;
+    filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.6));
+}
+

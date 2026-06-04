@@ -232,8 +232,6 @@ function checkOnboardingState() {
         // Populate inputs in settings
         document.getElementById('settings-birth-date').value = birth;
         document.getElementById('settings-expectancy-age').value = expectancy;
-        document.getElementById('settings-dday-title').value = localStorage.getItem('aw-life-dday-title') || '';
-        document.getElementById('settings-dday-date').value = localStorage.getItem('aw-life-dday-date') || '';
         
         // Update D-Day Card and Streak Badge
         updateDDayCard();
@@ -377,6 +375,7 @@ function renderHistoryCalendar() {
     calendarGrid.innerHTML = '';
     
     const history = loadHistory();
+    const ddays = loadDDays();
     const todayStr = getTodayDateString();
     
     const firstDayIndex = new Date(currentCalendarYear, currentCalendarMonth, 1).getDay();
@@ -424,6 +423,17 @@ function renderHistoryCalendar() {
                 }
                 cell.appendChild(dot);
             }
+        }
+        
+        // Check if date has D-Days
+        const dateMatches = ddays.filter(item => item.targetDate === dateStr);
+        if (dateMatches.length > 0) {
+            cell.classList.add('has-dday');
+            const flag = document.createElement('div');
+            flag.className = 'calendar-dday-flag';
+            flag.title = dateMatches.map(item => item.title).join(', ');
+            flag.innerHTML = '<i class="fa-solid fa-flag"></i>';
+            cell.appendChild(flag);
         }
         
         // Check if date is in the past or today for editing
@@ -589,7 +599,7 @@ function deleteSelectedCalendarRecord() {
 }
 
 function backupData() {
-    const keys = ['aw-life-birth', 'aw-life-expectancy', 'aw-life-history', 'aw-life-dday-title', 'aw-life-dday-date', 'aw-life-dday-set-date'];
+    const keys = ['aw-life-birth', 'aw-life-expectancy', 'aw-life-history', 'aw-life-dday-list'];
     const backupObj = {};
     
     keys.forEach(key => {
@@ -641,15 +651,12 @@ function restoreData(file) {
                 localStorage.removeItem('aw-life-history');
             }
             
-            // Restore D-Day keys if they exist in backupObj
-            const ddayKeys = ['aw-life-dday-title', 'aw-life-dday-date', 'aw-life-dday-set-date'];
-            ddayKeys.forEach(k => {
-                if (backupObj[k]) {
-                    localStorage.setItem(k, backupObj[k]);
-                } else {
-                    localStorage.removeItem(k);
-                }
-            });
+            // Restore D-Day list
+            if (backupObj['aw-life-dday-list']) {
+                localStorage.setItem('aw-life-dday-list', backupObj['aw-life-dday-list']);
+            } else {
+                localStorage.removeItem('aw-life-dday-list');
+            }
             
             alert("데이터 복원이 성공적으로 완료되었습니다! 페이지를 새로고침하여 적용합니다.");
             window.location.reload();
@@ -766,66 +773,146 @@ function formatDate(date) {
     return `${y}-${m}-${d}`;
 }
 
+function loadDDays() {
+    try {
+        const ddays = localStorage.getItem('aw-life-dday-list');
+        if (ddays) {
+            return JSON.parse(ddays);
+        }
+    } catch (e) {
+        console.error("Failed to parse D-Days list", e);
+    }
+    
+    // Migration logic from old single D-Day settings
+    const oldTitle = localStorage.getItem('aw-life-dday-title');
+    const oldDate = localStorage.getItem('aw-life-dday-date');
+    const oldSetDate = localStorage.getItem('aw-life-dday-set-date') || getTodayDateString();
+    
+    if (oldDate) {
+        const migratedList = [{
+            id: Date.now().toString(),
+            title: oldTitle || '디데이',
+            targetDate: oldDate,
+            setDate: oldSetDate
+        }];
+        saveDDays(migratedList);
+        localStorage.removeItem('aw-life-dday-title');
+        localStorage.removeItem('aw-life-dday-date');
+        localStorage.removeItem('aw-life-dday-set-date');
+        return migratedList;
+    }
+    
+    return [];
+}
+
+function saveDDays(list) {
+    localStorage.setItem('aw-life-dday-list', JSON.stringify(list));
+}
+
 function updateDDayCard() {
-    const ddayCard = document.getElementById('dday-card');
-    const titleEl = document.getElementById('dday-display-title');
-    const daysEl = document.getElementById('dday-display-days');
-    const barEl = document.getElementById('bar-dday');
-    const startEl = document.getElementById('dday-start-date');
-    const endEl = document.getElementById('dday-end-date');
+    const listContainer = document.getElementById('dday-list-container');
+    const emptyMsg = document.getElementById('dday-empty-message');
+    if (!listContainer || !emptyMsg) return;
     
-    if (!ddayCard || !titleEl || !daysEl || !barEl || !startEl || !endEl) return;
+    const ddays = loadDDays();
+    listContainer.innerHTML = '';
     
-    const ddayTitle = localStorage.getItem('aw-life-dday-title') || '디데이';
-    const ddayDateStr = localStorage.getItem('aw-life-dday-date');
-    const ddaySetDateStr = localStorage.getItem('aw-life-dday-set-date');
-    
-    if (!ddayDateStr) {
-        ddayCard.classList.add('hidden');
+    if (ddays.length === 0) {
+        emptyMsg.style.display = 'block';
         return;
     }
     
-    const targetDate = new Date(ddayDateStr);
+    emptyMsg.style.display = 'none';
+    
     const today = new Date();
-    targetDate.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
     
-    const diffTime = targetDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    titleEl.innerHTML = `<i class="fa-solid fa-flag" style="color: #00f2fe; margin-right: 6px;"></i> ${escapeHtml(ddayTitle)}`;
-    endEl.textContent = ddayDateStr.replace(/-/g, '. ');
-    
-    if (diffDays > 0) {
-        daysEl.textContent = `D-${diffDays}`;
-    } else if (diffDays === 0) {
-        daysEl.textContent = `D-Day`;
-    } else {
-        daysEl.textContent = `D+${Math.abs(diffDays)}`;
-    }
-    
-    if (ddaySetDateStr) {
-        const setDate = new Date(ddaySetDateStr);
-        setDate.setHours(0, 0, 0, 0);
+    ddays.forEach(item => {
+        const targetDate = new Date(item.targetDate);
+        targetDate.setHours(0, 0, 0, 0);
         
-        const totalTime = targetDate.getTime() - setDate.getTime();
-        const elapsedTime = today.getTime() - setDate.getTime();
+        const diffTime = targetDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        startEl.textContent = ddaySetDateStr.replace(/-/g, '. ');
-        
-        if (totalTime > 0) {
-            let pct = (elapsedTime / totalTime) * 100;
-            pct = Math.max(0, Math.min(100, pct));
-            barEl.style.width = `${pct}%`;
+        let ddayText = '';
+        if (diffDays > 0) {
+            ddayText = `D-${diffDays}`;
+        } else if (diffDays === 0) {
+            ddayText = `D-Day`;
         } else {
-            barEl.style.width = '100%';
+            ddayText = `D+${Math.abs(diffDays)}`;
         }
-    } else {
-        startEl.textContent = '설정일';
-        barEl.style.width = '0%';
-    }
+        
+        let pct = 0;
+        if (item.setDate) {
+            const setDate = new Date(item.setDate);
+            setDate.setHours(0, 0, 0, 0);
+            const totalTime = targetDate.getTime() - setDate.getTime();
+            const elapsedTime = today.getTime() - setDate.getTime();
+            if (totalTime > 0) {
+                pct = Math.max(0, Math.min(100, (elapsedTime / totalTime) * 100));
+            } else {
+                pct = 100;
+            }
+        }
+        
+        const itemEl = document.createElement('div');
+        itemEl.className = 'dday-item';
+        itemEl.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 12px;
+            position: relative;
+        `;
+        
+        itemEl.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <span style="font-weight: 700; font-size: 13px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
+                    ${escapeHtml(item.title)}
+                </span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="dday-badge" style="font-size: 11px; font-weight: 800; color: #00f2fe; background: rgba(0,242,254,0.08); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(0,242,254,0.15); white-space: nowrap;">
+                        ${ddayText}
+                    </span>
+                    <button class="dday-delete-btn" data-id="${item.id}" style="background: transparent; border: none; color: rgba(255, 65, 108, 0.7); cursor: pointer; padding: 4px; font-size: 12px; transition: color 0.2s;" title="삭제">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="progress-bar-container" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; width: 100%;">
+                <div class="progress-bar" style="width: ${pct}%; height: 100%; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); transition: width 0.5s ease;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);">
+                <span>시작: ${item.setDate.replace(/-/g, '. ')}</span>
+                <span>목표: ${item.targetDate.replace(/-/g, '. ')}</span>
+            </div>
+        `;
+        
+        listContainer.appendChild(itemEl);
+    });
     
-    ddayCard.classList.remove('hidden');
+    const deleteBtns = listContainer.querySelectorAll('.dday-delete-btn');
+    deleteBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            deleteDDay(id);
+        });
+    });
+}
+
+function deleteDDay(id) {
+    if (confirm("이 디데이를 삭제하시겠습니까?")) {
+        let ddays = loadDDays();
+        ddays = ddays.filter(item => item.id !== id);
+        saveDDays(ddays);
+        updateDDayCard();
+        renderHistoryCalendar();
+    }
 }
 
 function escapeHtml(str) {
@@ -1025,27 +1112,10 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const birthDate = document.getElementById('settings-birth-date').value;
             const expectancy = document.getElementById('settings-expectancy-age').value;
-            const ddayTitle = document.getElementById('settings-dday-title').value.trim();
-            const ddayDate = document.getElementById('settings-dday-date').value;
             
             if (birthDate && expectancy) {
                 localStorage.setItem('aw-life-birth', birthDate);
                 localStorage.setItem('aw-life-expectancy', expectancy);
-                
-                // Save D-Day
-                if (ddayDate) {
-                    localStorage.setItem('aw-life-dday-title', ddayTitle || '디데이');
-                    const currentTarget = localStorage.getItem('aw-life-dday-date');
-                    if (currentTarget !== ddayDate) {
-                        localStorage.setItem('aw-life-dday-date', ddayDate);
-                        localStorage.setItem('aw-life-dday-set-date', getTodayDateString());
-                    }
-                } else {
-                    localStorage.removeItem('aw-life-dday-title');
-                    localStorage.removeItem('aw-life-dday-date');
-                    localStorage.removeItem('aw-life-dday-set-date');
-                }
-                
                 document.getElementById('settings-modal').classList.add('hidden');
                 checkOnboardingState();
             }
@@ -1286,6 +1356,81 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === detailModal) {
                 closeCalendarDetailModal();
             }
+        });
+    }
+
+    // D-Day Board Event Listeners
+    const ddayToggleAddBtn = document.getElementById('dday-toggle-add-btn');
+    const ddayAddForm = document.getElementById('dday-add-form');
+    const ddayCancelAddBtn = document.getElementById('dday-cancel-add-btn');
+    const ddaySaveAddBtn = document.getElementById('dday-save-add-btn');
+    
+    if (ddayToggleAddBtn && ddayAddForm) {
+        ddayToggleAddBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            ddayAddForm.classList.toggle('hidden');
+            if (!ddayAddForm.classList.contains('hidden')) {
+                const titleInput = document.getElementById('dday-input-title');
+                const dateInput = document.getElementById('dday-input-date');
+                if (titleInput) titleInput.focus();
+                if (dateInput && !dateInput.value) {
+                    dateInput.value = getTodayDateString();
+                }
+            }
+        });
+    }
+    
+    if (ddayCancelAddBtn && ddayAddForm) {
+        ddayCancelAddBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            ddayAddForm.classList.add('hidden');
+            const titleInput = document.getElementById('dday-input-title');
+            const dateInput = document.getElementById('dday-input-date');
+            if (titleInput) titleInput.value = '';
+            if (dateInput) dateInput.value = '';
+        });
+    }
+    
+    if (ddaySaveAddBtn && ddayAddForm) {
+        ddaySaveAddBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const titleInput = document.getElementById('dday-input-title');
+            const dateInput = document.getElementById('dday-input-date');
+            if (!titleInput || !dateInput) return;
+            
+            const title = titleInput.value.trim();
+            const targetDate = dateInput.value;
+            
+            if (!title) {
+                alert("디데이 제목을 입력해 주세요.");
+                titleInput.focus();
+                return;
+            }
+            if (!targetDate) {
+                alert("디데이 날짜를 선택해 주세요.");
+                dateInput.focus();
+                return;
+            }
+            
+            const ddays = loadDDays();
+            const newDDay = {
+                id: Date.now().toString(),
+                title: title,
+                targetDate: targetDate,
+                setDate: getTodayDateString()
+            };
+            
+            ddays.push(newDDay);
+            saveDDays(ddays);
+            
+            // Reset & Hide Form
+            titleInput.value = '';
+            dateInput.value = '';
+            ddayAddForm.classList.add('hidden');
+            
+            // Update Board and Calendar Grid
+            updateDDayCard();
+            renderHistoryCalendar();
         });
     }
 });
