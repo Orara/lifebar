@@ -1240,3 +1240,36 @@ body {
         gap: 12px;
     }
 }
+
+/* ==========================================================================
+   Streak Badge & D-Day Card Additions
+   ========================================================================== */
+.streak-badge {
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 0 10px rgba(255, 75, 43, 0.4);
+    animation: streakPulse 2s infinite alternate;
+    vertical-align: middle;
+}
+
+@keyframes streakPulse {
+    from {
+        box-shadow: 0 0 5px rgba(255, 75, 43, 0.3);
+        transform: scale(1);
+    }
+    to {
+        box-shadow: 0 0 12px rgba(255, 75, 43, 0.6);
+        transform: scale(1.03);
+    }
+}
+
+.dday-card {
+    padding: 20px;
+}

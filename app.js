@@ -232,6 +232,12 @@ function checkOnboardingState() {
         // Populate inputs in settings
         document.getElementById('settings-birth-date').value = birth;
         document.getElementById('settings-expectancy-age').value = expectancy;
+        document.getElementById('settings-dday-title').value = localStorage.getItem('aw-life-dday-title') || '';
+        document.getElementById('settings-dday-date').value = localStorage.getItem('aw-life-dday-date') || '';
+        
+        // Update D-Day Card and Streak Badge
+        updateDDayCard();
+        updateStreak();
         
         // Manage daily resolution reset
         checkDailyResolutionReset();
@@ -291,6 +297,8 @@ function saveTodayData(updates, shouldRedrawCalendar = false) {
     history[todayStr] = updatedData;
     
     saveHistory(history);
+    updateStreak();
+    
     if (shouldRedrawCalendar) {
         renderHistoryCalendar();
     }
@@ -543,6 +551,7 @@ function saveSelectedCalendarRecord() {
     }
     
     saveHistory(history);
+    updateStreak();
     closeCalendarDetailModal();
     renderHistoryCalendar();
     
@@ -568,6 +577,7 @@ function deleteSelectedCalendarRecord() {
         const history = loadHistory();
         delete history[selectedDateForDelete];
         saveHistory(history);
+        updateStreak();
         closeCalendarDetailModal();
         renderHistoryCalendar();
         
@@ -579,7 +589,7 @@ function deleteSelectedCalendarRecord() {
 }
 
 function backupData() {
-    const keys = ['aw-life-birth', 'aw-life-expectancy', 'aw-life-history'];
+    const keys = ['aw-life-birth', 'aw-life-expectancy', 'aw-life-history', 'aw-life-dday-title', 'aw-life-dday-date', 'aw-life-dday-set-date'];
     const backupObj = {};
     
     keys.forEach(key => {
@@ -630,6 +640,16 @@ function restoreData(file) {
             } else {
                 localStorage.removeItem('aw-life-history');
             }
+            
+            // Restore D-Day keys if they exist in backupObj
+            const ddayKeys = ['aw-life-dday-title', 'aw-life-dday-date', 'aw-life-dday-set-date'];
+            ddayKeys.forEach(k => {
+                if (backupObj[k]) {
+                    localStorage.setItem(k, backupObj[k]);
+                } else {
+                    localStorage.removeItem(k);
+                }
+            });
             
             alert("데이터 복원이 성공적으로 완료되었습니다! 페이지를 새로고침하여 적용합니다.");
             window.location.reload();
@@ -691,6 +711,121 @@ function checkAdminState() {
     if (localStorage.getItem('lifebar-admin-unlocked') === 'true') {
         revealVisitorCount();
     }
+}
+
+function updateStreak() {
+    const history = loadHistory();
+    const streakBadge = document.getElementById('streak-badge');
+    const streakCountEl = document.getElementById('streak-count');
+    if (!streakBadge || !streakCountEl) return;
+    
+    let streak = 0;
+    const todayStr = getTodayDateString();
+    
+    const todayRecord = history[todayStr];
+    let startStr = null;
+    
+    if (todayRecord && todayRecord.completed) {
+        startStr = todayStr;
+    } else {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = formatDate(yesterday);
+        const yesterdayRecord = history[yesterdayStr];
+        if (yesterdayRecord && yesterdayRecord.completed) {
+            startStr = yesterdayStr;
+        }
+    }
+    
+    if (startStr) {
+        let checkDate = new Date(startStr);
+        while (true) {
+            const checkStr = formatDate(checkDate);
+            const record = history[checkStr];
+            if (record && record.completed) {
+                streak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+    }
+    
+    if (streak > 0) {
+        streakCountEl.textContent = streak;
+        streakBadge.classList.remove('hidden');
+    } else {
+        streakBadge.classList.add('hidden');
+    }
+}
+
+function formatDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function updateDDayCard() {
+    const ddayCard = document.getElementById('dday-card');
+    const titleEl = document.getElementById('dday-display-title');
+    const daysEl = document.getElementById('dday-display-days');
+    const barEl = document.getElementById('bar-dday');
+    const startEl = document.getElementById('dday-start-date');
+    const endEl = document.getElementById('dday-end-date');
+    
+    if (!ddayCard || !titleEl || !daysEl || !barEl || !startEl || !endEl) return;
+    
+    const ddayTitle = localStorage.getItem('aw-life-dday-title') || '디데이';
+    const ddayDateStr = localStorage.getItem('aw-life-dday-date');
+    const ddaySetDateStr = localStorage.getItem('aw-life-dday-set-date');
+    
+    if (!ddayDateStr) {
+        ddayCard.classList.add('hidden');
+        return;
+    }
+    
+    const targetDate = new Date(ddayDateStr);
+    const today = new Date();
+    targetDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    titleEl.innerHTML = `<i class="fa-solid fa-flag" style="color: #00f2fe; margin-right: 6px;"></i> ${escapeHtml(ddayTitle)}`;
+    endEl.textContent = ddayDateStr.replace(/-/g, '. ');
+    
+    if (diffDays > 0) {
+        daysEl.textContent = `D-${diffDays}`;
+    } else if (diffDays === 0) {
+        daysEl.textContent = `D-Day`;
+    } else {
+        daysEl.textContent = `D+${Math.abs(diffDays)}`;
+    }
+    
+    if (ddaySetDateStr) {
+        const setDate = new Date(ddaySetDateStr);
+        setDate.setHours(0, 0, 0, 0);
+        
+        const totalTime = targetDate.getTime() - setDate.getTime();
+        const elapsedTime = today.getTime() - setDate.getTime();
+        
+        startEl.textContent = ddaySetDateStr.replace(/-/g, '. ');
+        
+        if (totalTime > 0) {
+            let pct = (elapsedTime / totalTime) * 100;
+            pct = Math.max(0, Math.min(100, pct));
+            barEl.style.width = `${pct}%`;
+        } else {
+            barEl.style.width = '100%';
+        }
+    } else {
+        startEl.textContent = '설정일';
+        barEl.style.width = '0%';
+    }
+    
+    ddayCard.classList.remove('hidden');
 }
 
 function escapeHtml(str) {
@@ -890,10 +1025,27 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const birthDate = document.getElementById('settings-birth-date').value;
             const expectancy = document.getElementById('settings-expectancy-age').value;
+            const ddayTitle = document.getElementById('settings-dday-title').value.trim();
+            const ddayDate = document.getElementById('settings-dday-date').value;
             
             if (birthDate && expectancy) {
                 localStorage.setItem('aw-life-birth', birthDate);
                 localStorage.setItem('aw-life-expectancy', expectancy);
+                
+                // Save D-Day
+                if (ddayDate) {
+                    localStorage.setItem('aw-life-dday-title', ddayTitle || '디데이');
+                    const currentTarget = localStorage.getItem('aw-life-dday-date');
+                    if (currentTarget !== ddayDate) {
+                        localStorage.setItem('aw-life-dday-date', ddayDate);
+                        localStorage.setItem('aw-life-dday-set-date', getTodayDateString());
+                    }
+                } else {
+                    localStorage.removeItem('aw-life-dday-title');
+                    localStorage.removeItem('aw-life-dday-date');
+                    localStorage.removeItem('aw-life-dday-set-date');
+                }
+                
                 document.getElementById('settings-modal').classList.add('hidden');
                 checkOnboardingState();
             }
@@ -959,6 +1111,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.removeItem('aw-life-birth');
                 localStorage.removeItem('aw-life-expectancy');
                 localStorage.removeItem('aw-life-history');
+                localStorage.removeItem('aw-life-dday-title');
+                localStorage.removeItem('aw-life-dday-date');
+                localStorage.removeItem('aw-life-dday-set-date');
                 checkOnboardingState();
             }
         });
