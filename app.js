@@ -550,13 +550,16 @@ function applyTranslations(lang) {
     }
     
     // Calendar statistics labels
-    const plannedLabel = document.querySelector('#cal-stat-recorded').previousElementSibling;
+    const recEl = document.querySelector('#cal-stat-recorded');
+    const plannedLabel = recEl ? recEl.previousElementSibling : null;
     if (plannedLabel) plannedLabel.textContent = dict.calendarStatPlanned;
     
-    const completedLabel = document.querySelector('#cal-stat-completed').previousElementSibling;
+    const compEl = document.querySelector('#cal-stat-completed');
+    const completedLabel = compEl ? compEl.previousElementSibling : null;
     if (completedLabel) completedLabel.textContent = dict.calendarStatCompleted;
     
-    const avgLabel = document.querySelector('#cal-stat-ratio').previousElementSibling;
+    const ratEl = document.querySelector('#cal-stat-ratio');
+    const avgLabel = ratEl ? ratEl.previousElementSibling : null;
     if (avgLabel) avgLabel.textContent = dict.calendarStatAverage;
     
     // Action buttons
@@ -648,7 +651,8 @@ function applyTranslations(lang) {
     const trackCampfire = document.querySelector('.ambient-track-btn[data-track="campfire"] span');
     if (trackCampfire) trackCampfire.textContent = dict.musicTrackCampfire;
     
-    const volLabel = document.querySelector('#ambient-volume-slider').previousElementSibling.firstElementChild;
+    const volSlider = document.querySelector('#ambient-volume-slider');
+    const volLabel = (volSlider && volSlider.previousElementSibling) ? volSlider.previousElementSibling.firstElementChild : null;
     if (volLabel) volLabel.textContent = dict.musicVolumeLabel;
     
     const toggleBtn = document.getElementById('ambient-toggle-widget-btn');
@@ -742,6 +746,7 @@ function calculateProgress() {
     const year = now.getFullYear();
     const month = now.getMonth();
     const date = now.getDate();
+    const dict = translations[currentLang] || translations.ko;
     
     // ----------------------------------------------------
     // A. Today's Progress (Precision calculation)
@@ -778,7 +783,7 @@ function calculateProgress() {
     
     const monthDisplay = document.getElementById('month-display');
     if (monthDisplay) {
-        const dict = translations[currentLang] || translations.ko; monthDisplay.textContent = `${date}${dict.unitDay} / ${totalDaysInMonth}${dict.unitDay}`;
+        monthDisplay.textContent = `${date}${dict.unitDay} / ${totalDaysInMonth}${dict.unitDay}`;
     }
     const percentMonth = document.getElementById('percent-month');
     if (percentMonth) {
