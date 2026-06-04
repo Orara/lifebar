@@ -650,7 +650,7 @@ async function sha256(message) {
 
 function initVisitorCounter() {
     if (!sessionStorage.getItem('lifebar-visited')) {
-        fetch('https://api.counterapi.dev/v1/lifebar-orara/visits/up?cb=' + Date.now())
+        fetch('https://abacus.jasoncameron.dev/hit/lifebar-orara/visits?cb=' + Date.now())
             .then(res => res.json())
             .then(data => {
                 sessionStorage.setItem('lifebar-visited', 'true');
@@ -670,11 +670,11 @@ function revealVisitorCount() {
     adminSection.classList.remove('hidden');
     localStorage.setItem('lifebar-admin-unlocked', 'true');
     
-    fetch('https://api.counterapi.dev/v1/lifebar-orara/visits?cb=' + Date.now())
+    fetch('https://abacus.jasoncameron.dev/get/lifebar-orara/visits?cb=' + Date.now())
         .then(res => res.json())
         .then(data => {
-            if (data && data.count !== undefined) {
-                countEl.textContent = `${data.count.toLocaleString('ko-KR')} 명`;
+            if (data && data.value !== undefined) {
+                countEl.textContent = `${data.value.toLocaleString('ko-KR')} 명`;
             } else {
                 countEl.textContent = "데이터 없음";
             }
