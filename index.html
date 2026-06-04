@@ -176,6 +176,18 @@
                 <div id="calendar-grid" class="calendar-grid">
                     <!-- Calendar cells rendered dynamically by app.js -->
                 </div>
+                
+                <!-- Calendar statistics -->
+                <div class="calendar-stats">
+                    <div class="cal-stat-item">
+                        <span class="cal-stat-label">이달의 다짐 달성</span>
+                        <span id="cal-stat-completed" class="cal-stat-value">0일 / 0일</span>
+                    </div>
+                    <div class="cal-stat-item">
+                        <span class="cal-stat-label">이달의 다짐 달성률</span>
+                        <span id="cal-stat-ratio" class="cal-stat-value">0.0%</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -211,25 +223,49 @@
 
                 <button type="submit" class="primary-btn">설정 변경 저장</button>
             </form>
+
+            <!-- Data Management (Backup / Restore) -->
+            <div class="settings-data-actions">
+                <button id="backup-data-btn" class="secondary-btn"><i class="fa-solid fa-download"></i> <span>데이터 백업</span></button>
+                <button id="restore-data-btn" class="secondary-btn"><i class="fa-solid fa-upload"></i> <span>데이터 복원</span></button>
+                <input type="file" id="restore-file-input" accept=".json" style="display: none;">
+            </div>
+
+            <!-- Hidden Admin Visitor Counter -->
+            <div id="admin-visits-section" class="admin-visits-section hidden">
+                <div class="admin-visits-divider"></div>
+                <div class="admin-visits-row">
+                    <span class="admin-visits-label"><i class="fa-solid fa-users"></i> 누적 방문자 수</span>
+                    <span id="admin-visits-count" class="admin-visits-value">로딩 중...</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Calendar Detail Modal -->
+    <!-- Calendar Detail & Editor Modal -->
     <div id="calendar-detail-modal" class="calendar-detail-overlay hidden">
         <div class="calendar-detail-content glass-card">
             <div class="calendar-detail-header">
                 <span id="detail-date" class="calendar-detail-date">2026. 06. 04</span>
             </div>
             <div class="calendar-detail-body">
+                <!-- Checkbox + Input for Resolution -->
                 <div id="detail-resolution-container" class="calendar-detail-resolution">
-                    <i id="detail-resolution-icon" class="fa-regular fa-circle"></i>
-                    <span id="detail-resolution-text">오늘의 다짐이 없습니다.</span>
+                    <button id="detail-resolution-check-btn" class="resolution-check-btn" title="완료 표시"><i id="detail-resolution-icon" class="fa-regular fa-circle"></i></button>
+                    <input type="text" id="detail-resolution-input" placeholder="이날의 다짐을 기록해 보세요..." maxlength="60">
                 </div>
-                <div id="detail-diary" class="calendar-detail-diary">작성된 회고록이 없습니다.</div>
+                <!-- Textarea for Diary -->
+                <div class="detail-diary-container">
+                    <label for="detail-diary-textarea" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px;">하루 회고록</label>
+                    <textarea id="detail-diary-textarea" placeholder="이날 흘러간 시간 동안 느꼈던 생각을 자유롭게 적어보세요..." rows="5"></textarea>
+                </div>
             </div>
             <div class="calendar-detail-footer">
                 <button id="detail-delete-btn" class="calendar-detail-delete-btn"><i class="fa-solid fa-trash-can"></i> 삭제</button>
-                <button id="detail-close-btn" class="calendar-detail-close-btn">닫기</button>
+                <div class="calendar-detail-right-btns">
+                    <button id="detail-close-btn" class="secondary-btn" style="padding: 10px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;">닫기</button>
+                    <button id="detail-save-btn" class="primary-btn" style="width: auto; padding: 10px 22px; border-radius: 20px; font-size: 13px; font-weight: 600;">저장</button>
+                </div>
             </div>
         </div>
     </div>

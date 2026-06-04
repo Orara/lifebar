@@ -280,6 +280,7 @@ function getTodayData() {
 let currentCalendarYear = new Date().getFullYear();
 let currentCalendarMonth = new Date().getMonth();
 let selectedDateForDelete = null;
+let detailModalCompletedState = false;
 
 function saveTodayData(updates, shouldRedrawCalendar = false) {
     const history = loadHistory();
@@ -384,6 +385,9 @@ function renderHistoryCalendar() {
     }
     
     // 2. Render actual day cells
+    const todayObj = new Date();
+    todayObj.setHours(0, 0, 0, 0);
+    
     for (let d = 1; d <= totalDays; d++) {
         const cell = document.createElement('div');
         cell.className = 'calendar-cell';
@@ -399,6 +403,7 @@ function renderHistoryCalendar() {
             cell.classList.add('today');
         }
         
+        // Add record indicator dot if present
         if (history[dateStr]) {
             const record = history[dateStr];
             if (record.resolution || record.diary) {
@@ -410,12 +415,18 @@ function renderHistoryCalendar() {
                     dot.classList.add('completed');
                 }
                 cell.appendChild(dot);
-                
-                cell.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openCalendarDetailModal(dateStr, record);
-                });
             }
+        }
+        
+        // Check if date is in the past or today for editing
+        const cellDate = new Date(currentCalendarYear, currentCalendarMonth, d);
+        if (cellDate <= todayObj) {
+            cell.classList.add('editable-day');
+            cell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const record = history[dateStr] || { resolution: '', completed: false, diary: '' };
+                openCalendarDetailModal(dateStr, record);
+            });
         }
         
         calendarGrid.appendChild(cell);
@@ -430,6 +441,35 @@ function renderHistoryCalendar() {
         cell.innerHTML = `<span class="calendar-cell-num">${i}</span>`;
         calendarGrid.appendChild(cell);
     }
+    
+    // 4. Update stats below calendar
+    updateCalendarStats();
+}
+
+function updateCalendarStats() {
+    const completedEl = document.getElementById('cal-stat-completed');
+    const ratioEl = document.getElementById('cal-stat-ratio');
+    if (!completedEl || !ratioEl) return;
+    
+    const history = loadHistory();
+    let totalRecorded = 0;
+    let totalCompleted = 0;
+    
+    const totalDays = new Date(currentCalendarYear, currentCalendarMonth + 1, 0).getDate();
+    
+    for (let d = 1; d <= totalDays; d++) {
+        const dateStr = `${currentCalendarYear}-${String(currentCalendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        if (history[dateStr] && history[dateStr].resolution) {
+            totalRecorded++;
+            if (history[dateStr].completed) {
+                totalCompleted++;
+            }
+        }
+    }
+    
+    completedEl.textContent = `${totalCompleted}일 / ${totalRecorded}일`;
+    const ratio = totalRecorded > 0 ? (totalCompleted / totalRecorded) * 100 : 0.0;
+    ratioEl.textContent = `${ratio.toFixed(1)}%`;
 }
 
 function changeCalendarMonth(offset) {
@@ -447,42 +487,70 @@ function changeCalendarMonth(offset) {
 function openCalendarDetailModal(dateStr, record) {
     const modal = document.getElementById('calendar-detail-modal');
     const dateText = document.getElementById('detail-date');
-    const resContainer = document.getElementById('detail-resolution-container');
-    const resIcon = document.getElementById('detail-resolution-icon');
-    const resText = document.getElementById('detail-resolution-text');
-    const diaryText = document.getElementById('detail-diary');
+    const resInput = document.getElementById('detail-resolution-input');
+    const diaryTextarea = document.getElementById('detail-diary-textarea');
     
-    if (!modal || !dateText || !resContainer || !resIcon || !resText || !diaryText) return;
+    if (!modal || !dateText || !resInput || !diaryTextarea) return;
     
     selectedDateForDelete = dateStr;
+    detailModalCompletedState = record.completed || false;
     
     const dateObj = new Date(dateStr);
     const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
     const dayOfWeek = weekdays[dateObj.getDay()];
     dateText.textContent = `${dateStr.replace(/-/g, '. ')} (${dayOfWeek})`;
     
-    if (record.resolution) {
-        resText.textContent = record.resolution;
-        resContainer.style.display = 'flex';
-        if (record.completed) {
-            resContainer.className = 'calendar-detail-resolution completed';
-            resIcon.className = 'fa-solid fa-circle-check check-success';
-        } else {
-            resContainer.className = 'calendar-detail-resolution';
-            resIcon.className = 'fa-regular fa-circle';
-        }
-    } else {
-        resContainer.style.display = 'none';
-    }
+    resInput.value = record.resolution || '';
+    diaryTextarea.value = record.diary || '';
     
-    if (record.diary) {
-        diaryText.innerHTML = escapeHtml(record.diary).replace(/\n/g, '<br>');
-        diaryText.style.display = 'block';
-    } else {
-        diaryText.style.display = 'none';
-    }
-    
+    updateDetailModalCheckUI();
     modal.classList.remove('hidden');
+}
+
+function updateDetailModalCheckUI() {
+    const btn = document.getElementById('detail-resolution-check-btn');
+    const icon = document.getElementById('detail-resolution-icon');
+    const input = document.getElementById('detail-resolution-input');
+    if (!btn || !icon || !input) return;
+    
+    if (detailModalCompletedState) {
+        btn.classList.add('completed');
+        input.classList.add('completed');
+        icon.className = 'fa-solid fa-circle-check check-success';
+    } else {
+        btn.classList.remove('completed');
+        input.classList.remove('completed');
+        icon.className = 'fa-regular fa-circle';
+    }
+}
+
+function saveSelectedCalendarRecord() {
+    if (!selectedDateForDelete) return;
+    
+    const resVal = document.getElementById('detail-resolution-input').value.trim();
+    const diaryVal = document.getElementById('detail-diary-textarea').value.trim();
+    
+    const history = loadHistory();
+    
+    if (!resVal && !diaryVal) {
+        delete history[selectedDateForDelete];
+    } else {
+        history[selectedDateForDelete] = {
+            resolution: resVal,
+            completed: detailModalCompletedState,
+            diary: diaryVal
+        };
+    }
+    
+    saveHistory(history);
+    closeCalendarDetailModal();
+    renderHistoryCalendar();
+    
+    // Update dashboard inputs if saved today's record
+    const todayStr = getTodayDateString();
+    if (selectedDateForDelete === todayStr) {
+        checkDailyResolutionReset();
+    }
 }
 
 function closeCalendarDetailModal() {
@@ -502,6 +570,117 @@ function deleteSelectedCalendarRecord() {
         saveHistory(history);
         closeCalendarDetailModal();
         renderHistoryCalendar();
+        
+        const todayStr = getTodayDateString();
+        if (selectedDateForDelete === todayStr) {
+            checkDailyResolutionReset();
+        }
+    }
+}
+
+function backupData() {
+    const keys = ['aw-life-birth', 'aw-life-expectancy', 'aw-life-history'];
+    const backupObj = {};
+    
+    keys.forEach(key => {
+        const val = localStorage.getItem(key);
+        if (val) {
+            backupObj[key] = val;
+        }
+    });
+    
+    if (Object.keys(backupObj).length === 0) {
+        alert("백업할 데이터가 없습니다. 먼저 인생 설정을 완료해 주세요.");
+        return;
+    }
+    
+    const jsonStr = JSON.stringify(backupObj, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `lifebar_backup_${dateStr}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function restoreData(file) {
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const backupObj = JSON.parse(e.target.result);
+            
+            if (!backupObj['aw-life-birth'] || !backupObj['aw-life-expectancy']) {
+                throw new Error("올바른 백업 파일 구조가 아닙니다. 생년월일과 예상 수명 데이터가 필요합니다.");
+            }
+            
+            localStorage.setItem('aw-life-birth', backupObj['aw-life-birth']);
+            localStorage.setItem('aw-life-expectancy', backupObj['aw-life-expectancy']);
+            
+            if (backupObj['aw-life-history']) {
+                localStorage.setItem('aw-life-history', backupObj['aw-life-history']);
+            } else {
+                localStorage.removeItem('aw-life-history');
+            }
+            
+            alert("데이터 복원이 성공적으로 완료되었습니다! 페이지를 새로고침하여 적용합니다.");
+            window.location.reload();
+            
+        } catch (err) {
+            alert("데이터 복원에 실패했습니다: " + err.message);
+        }
+    };
+    reader.readAsText(file);
+}
+
+function initVisitorCounter() {
+    if (!sessionStorage.getItem('lifebar-visited')) {
+        fetch('https://api.counterapi.dev/v1/lifebar-orara/visits/up')
+            .then(res => res.json())
+            .then(data => {
+                sessionStorage.setItem('lifebar-visited', 'true');
+                console.log("Visitor count session initialized");
+            })
+            .catch(err => console.error("Visitor Counter Up error:", err));
+    }
+}
+
+let settingsTitleClicks = 0;
+
+function revealVisitorCount() {
+    const adminSection = document.getElementById('admin-visits-section');
+    const countEl = document.getElementById('admin-visits-count');
+    if (!adminSection || !countEl) return;
+    
+    adminSection.classList.remove('hidden');
+    localStorage.setItem('lifebar-admin-unlocked', 'true');
+    
+    fetch('https://api.counterapi.dev/v1/lifebar-orara/visits')
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.count !== undefined) {
+                countEl.textContent = `${data.count.toLocaleString('ko-KR')} 명`;
+            } else {
+                countEl.textContent = "데이터 없음";
+            }
+        })
+        .catch(err => {
+            console.error("Fetch counter error:", err);
+            countEl.textContent = "조회 실패";
+        });
+}
+
+function checkAdminState() {
+    if (localStorage.getItem('lifebar-admin-unlocked') === 'true') {
+        revealVisitorCount();
     }
 }
 
@@ -666,6 +845,9 @@ function getSkyGradientForIG() {
 // 6. Initialize & DOM Listeners
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
+    // 0. Initialize Visitor Session Counter
+    initVisitorCounter();
+
     // 1. Setup ambient particle backgrounds
     generateStardust();
     updateSkyBackground();
@@ -716,6 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             settingsModal.classList.remove('hidden');
+            checkAdminState();
         });
     }
 
@@ -732,6 +915,17 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsModal.addEventListener('click', (e) => {
             if (e.target === settingsModal) {
                 settingsModal.classList.add('hidden');
+            }
+        });
+    }
+
+    // 6b. Settings modal header click (Secret Admin panel)
+    const settingsTitle = document.querySelector('#settings-modal h2');
+    if (settingsTitle) {
+        settingsTitle.addEventListener('click', (e) => {
+            settingsTitleClicks++;
+            if (settingsTitleClicks >= 5) {
+                revealVisitorCount();
             }
         });
     }
@@ -833,12 +1027,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 12. Calendar Navigation and Modal Listeners
+    // 12. Backup / Restore Data Action Buttons
+    const backupBtn = document.getElementById('backup-data-btn');
+    const restoreBtn = document.getElementById('restore-data-btn');
+    const restoreFileInput = document.getElementById('restore-file-input');
+
+    if (backupBtn) {
+        backupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            backupData();
+        });
+    }
+
+    if (restoreBtn && restoreFileInput) {
+        restoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            restoreFileInput.click();
+        });
+        
+        restoreFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                restoreData(e.target.files[0]);
+            }
+        });
+    }
+
+    // 13. Calendar Navigation and Modal Listeners
     const prevBtn = document.getElementById('calendar-prev-btn');
     const nextBtn = document.getElementById('calendar-next-btn');
     const detailCloseBtn = document.getElementById('detail-close-btn');
+    const detailSaveBtn = document.getElementById('detail-save-btn');
     const detailDeleteBtn = document.getElementById('detail-delete-btn');
     const detailModal = document.getElementById('calendar-detail-modal');
+    const detailResCheckBtn = document.getElementById('detail-resolution-check-btn');
 
     if (prevBtn) {
         prevBtn.addEventListener('click', (e) => {
@@ -861,10 +1084,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (detailSaveBtn) {
+        detailSaveBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            saveSelectedCalendarRecord();
+        });
+    }
+
     if (detailDeleteBtn) {
         detailDeleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteSelectedCalendarRecord();
+        });
+    }
+
+    if (detailResCheckBtn) {
+        detailResCheckBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            detailModalCompletedState = !detailModalCompletedState;
+            updateDetailModalCheckUI();
         });
     }
 

@@ -1058,6 +1058,158 @@ body {
 }
 
 /* ==========================================================================
+   4. Advanced Features Styles (Stats, Editor Form, Backup, Admin Counter)
+   ========================================================================== */
+.calendar-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 16px;
+    margin-top: 16px;
+    gap: 16px;
+}
+
+.cal-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.cal-stat-item:last-child {
+    align-items: flex-end;
+}
+
+.cal-stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cal-stat-value {
+    font-family: var(--font-alt);
+    font-size: 16px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+#cal-stat-ratio {
+    color: #28c76f;
+    text-shadow: 0 0 10px rgba(40, 199, 111, 0.3);
+}
+
+.calendar-cell.editable-day {
+    cursor: pointer;
+}
+
+.calendar-cell.editable-day:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+.calendar-detail-resolution input {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-family: var(--font-main);
+    font-size: 14px;
+    outline: none;
+    flex-grow: 1;
+    padding: 4px 0;
+}
+
+.detail-diary-container {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.detail-diary-container textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    color: #ffffff;
+    font-family: var(--font-main);
+    font-size: 13.5px;
+    line-height: 1.6;
+    padding: 14px;
+    resize: none;
+    outline: none;
+    transition: var(--transition-smooth);
+}
+
+.detail-diary-container textarea:focus {
+    border-color: rgba(184, 0, 255, 0.4);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.calendar-detail-right-btns {
+    display: flex;
+    gap: 12px;
+}
+
+.settings-data-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 20px;
+}
+
+.settings-data-actions .secondary-btn {
+    padding: 10px 14px;
+    font-size: 12px;
+    border-radius: 20px;
+}
+
+.admin-visits-section {
+    margin-top: 16px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.admin-visits-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin: 16px 0;
+}
+
+.admin-visits-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    padding: 12px 18px;
+}
+
+.admin-visits-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-visits-label i {
+    color: #ffd3a5;
+}
+
+.admin-visits-value {
+    font-family: var(--font-alt);
+    font-weight: 800;
+    font-size: 15px;
+    color: #ffd3a5;
+    text-shadow: 0 0 10px rgba(255, 211, 165, 0.3);
+}
+
+/* ==========================================================================
    Responsive Viewport Custom Adjustments (Media Queries)
    ========================================================================== */
 @media (max-width: 768px) {
