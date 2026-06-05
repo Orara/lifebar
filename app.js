@@ -55,7 +55,7 @@ const translations = {
         btnRestore: "설정 복원 (.json)",
         btnExportCsv: "기록 CSV 다운로드",
         btnPrintPdf: "일기장 인쇄 / PDF",
-        adminVisitsLabel: "누적 방문자 수",
+        adminVisitsLabel: "방문자 통계",
         detailDdayTitle: "오늘의 디데이 (D-Day)",
         detailResolutionPlaceholder: "이날의 다짐을 기록해 보세요...",
         detailDiaryLabel: "하루 회고록",
@@ -163,7 +163,7 @@ const translations = {
         btnRestore: "Restore Settings (.json)",
         btnExportCsv: "Download History CSV",
         btnPrintPdf: "Print Diary / PDF",
-        adminVisitsLabel: "Total Visitors",
+        adminVisitsLabel: "Visitor Stats",
         detailDdayTitle: "Today's D-Days",
         detailResolutionPlaceholder: "Record your resolution for this day...",
         detailDiaryLabel: "Retrospective Diary",
@@ -271,7 +271,7 @@ const translations = {
         btnRestore: "設定を復元 (.json)",
         btnExportCsv: "記録をCSVで保存",
         btnPrintPdf: "日記帳を印刷 / PDF",
-        adminVisitsLabel: "累計訪問者数",
+        adminVisitsLabel: "訪問者統計",
         detailDdayTitle: "今日のD-Day目標",
         detailResolutionPlaceholder: "この日の目標を記録する...",
         detailDiaryLabel: "振り返り日記",
@@ -379,7 +379,7 @@ const translations = {
         btnRestore: "恢复数据 (.json)",
         btnExportCsv: "下载历史记录 CSV",
         btnPrintPdf: "打印日记本 / PDF",
-        adminVisitsLabel: "累计访问人数",
+        adminVisitsLabel: "访问者统计",
         detailDdayTitle: "今日目标 (D-Day)",
         detailResolutionPlaceholder: "记录这天的目标...",
         detailDiaryLabel: "复盘日记",
@@ -1471,15 +1471,30 @@ function startPresenceHeartbeat(appName) {
 }
 
 function initVisitorCounter() {
+    const todayStr = getTodayDateString();
+    
+    // 1. Total (Cumulative) Visitor Count (Once ever per device/browser)
     if (!localStorage.getItem('lifebar-visited')) {
         fetch('https://abacus.jasoncameron.dev/hit/lifebar-orara/visits?cb=' + Date.now())
             .then(res => res.json())
             .then(data => {
                 localStorage.setItem('lifebar-visited', 'true');
-                console.log("Visitor count session initialized");
+                console.log("Total visitor count initialized");
             })
-            .catch(err => console.error("Visitor Counter Up error:", err));
+            .catch(err => console.error("Total Visitor Counter hit error:", err));
     }
+    
+    // 2. Today's Visitor Count (Once per day per device/browser)
+    if (!localStorage.getItem('lifebar-visited-' + todayStr)) {
+        fetch(`https://abacus.jasoncameron.dev/hit/lifebar-orara-visits-${todayStr}/visits?cb=` + Date.now())
+            .then(res => res.json())
+            .then(data => {
+                localStorage.setItem('lifebar-visited-' + todayStr, 'true');
+                console.log("Today visitor count initialized for " + todayStr);
+            })
+            .catch(err => console.error("Today Visitor Counter hit error:", err));
+    }
+    
     if (db) {
         startPresenceHeartbeat('lifebar');
     }
@@ -1495,52 +1510,85 @@ function revealVisitorCount() {
     adminSection.classList.remove('hidden');
     localStorage.setItem('lifebar-admin-unlocked', 'true');
     
-    fetch('https://abacus.jasoncameron.dev/get/lifebar-orara/visits?cb=' + Date.now())
-        .then(res => res.json())
-        .then(data => {
-            let totalCountText = '0';
-            const dict = translations[currentLang] || translations.ko;
+    const todayStr = getTodayDateString();
+    
+    Promise.all([
+        fetch('https://abacus.jasoncameron.dev/get/lifebar-orara/visits?cb=' + Date.now()).then(res => res.json()),
+        fetch(`https://abacus.jasoncameron.dev/get/lifebar-orara-visits-${todayStr}/visits?cb=` + Date.now()).then(res => res.json())
+    ])
+    .then(([totalData, todayData]) => {
+        let totalCount = 0;
+        let todayCount = 0;
+        
+        if (totalData && totalData.value !== undefined) {
+            totalCount = totalData.value;
+        }
+        if (todayData && todayData.value !== undefined) {
+            todayCount = todayData.value;
+        }
+        
+        if (todayCount < 1) todayCount = 1;
+        if (totalCount < todayCount) totalCount = todayCount;
+        
+        const formatCountText = (liveCountVal) => {
+            const formattedTotal = totalCount.toLocaleString(currentLang);
+            const formattedToday = todayCount.toLocaleString(currentLang);
             
-            if (data && data.value !== undefined) {
-                totalCountText = data.value.toLocaleString(currentLang);
+            if (currentLang === 'ko') {
+                return `누적 ${formattedTotal}명 / 오늘 ${formattedToday}명 (실시간 ${liveCountVal}명)`;
+            } else if (currentLang === 'ja') {
+                return `累計 ${formattedTotal}人 / 本日 ${formattedToday}人 (リアルタイム ${liveCountVal}人)`;
+            } else if (currentLang === 'zh') {
+                return `累计 ${formattedTotal} 人次 / 今日 ${formattedToday} 人次 (实时 ${liveCountVal} 人)`;
+            } else {
+                return `Total: ${formattedTotal} / Today: ${formattedToday} (live: ${liveCountVal})`;
             }
-            
-            if (db) {
-                db.collection('presence')
-                    .where('appName', '==', 'lifebar')
-                    .onSnapshot(snapshot => {
-                        const now = Date.now();
-                        let activeCount = 0;
-                        
-                        snapshot.forEach(doc => {
-                            const docData = doc.data();
-                            if (docData.lastActive) {
-                                const lastActiveMs = docData.lastActive.toDate().getTime();
-                                if (now - lastActiveMs < 40000) {
-                                    activeCount++;
-                                }
-                            } else {
+        };
+        
+        if (db) {
+            if (window.presenceUnsubscribe) {
+                window.presenceUnsubscribe();
+            }
+            window.presenceUnsubscribe = db.collection('presence')
+                .where('appName', '==', 'lifebar')
+                .onSnapshot(snapshot => {
+                    const now = Date.now();
+                    let activeCount = 0;
+                    
+                    snapshot.forEach(doc => {
+                        const docData = doc.data();
+                        if (docData.lastActive) {
+                            const lastActiveMs = docData.lastActive.toDate().getTime();
+                            if (now - lastActiveMs < 40000) {
                                 activeCount++;
                             }
-                        });
-                        
-                        if (activeCount < 1) activeCount = 1;
-                        
-                        const liveText = currentLang === 'ko' ? ` (실시간 ${activeCount}명)` : ` (live: ${activeCount})`;
-                        countEl.textContent = dict.dynamicVisitorCount.replace('{count}', totalCountText) + liveText;
-                    }, err => {
-                        console.error("Presence listener error:", err);
-                        countEl.textContent = dict.dynamicVisitorCount.replace('{count}', totalCountText);
+                        } else {
+                            activeCount++;
+                        }
                     });
-            } else {
-                countEl.textContent = dict.dynamicVisitorCount.replace('{count}', totalCountText);
-            }
-        })
-        .catch(err => {
-            console.error("Fetch counter error:", err);
-            const dict = translations[currentLang] || translations.ko;
-            countEl.textContent = dict.dynamicVisitorFailed;
-        });
+                    
+                    if (activeCount < 1) activeCount = 1;
+                    countEl.textContent = formatCountText(activeCount);
+                }, err => {
+                    console.error("Presence listener error:", err);
+                    countEl.textContent = formatCountText(1);
+                });
+        } else {
+            countEl.textContent = formatCountText(1);
+        }
+    })
+    .catch(err => {
+        console.error("Fetch counter error:", err);
+        if (currentLang === 'ko') {
+            countEl.textContent = "조회 실패";
+        } else if (currentLang === 'ja') {
+            countEl.textContent = "読み込み失敗";
+        } else if (currentLang === 'zh') {
+            countEl.textContent = "加载失败";
+        } else {
+            countEl.textContent = "Load Failed";
+        }
+    });
 }
 
 function checkAdminState() {
