@@ -1432,15 +1432,56 @@ async function sha256(message) {
     return hashHex;
 }
 
+// Firebase Presence Setup
+const firebaseConfig = {
+    projectId: "chromaglow-app-2026",
+    appId: "1:756931852879:web:6065bd640b06798efac83a",
+    apiKey: "AIzaSyDPDfgcTxO0DKduc5UCvaaeFnBXB75TsS0",
+    authDomain: "chromaglow-app-2026.firebaseapp.com"
+};
+
+let db;
+try {
+    if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+    }
+} catch (e) {
+    console.error("Firebase init error:", e);
+}
+
+const sessionId = 'session_' + Math.random().toString(36).substring(2, 11);
+
+function startPresenceHeartbeat(appName) {
+    const sessionRef = db.collection('presence').doc(appName + '_' + sessionId);
+    const sendHeartbeat = () => {
+        sessionRef.set({
+            appName: appName,
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => console.error("Presence heartbeat write error:", err));
+    };
+
+    sendHeartbeat();
+    const heartbeatInterval = setInterval(sendHeartbeat, 15000);
+
+    window.addEventListener('beforeunload', () => {
+        clearInterval(heartbeatInterval);
+        sessionRef.delete().catch(err => console.error("Presence exit delete error:", err));
+    });
+}
+
 function initVisitorCounter() {
-    if (!sessionStorage.getItem('lifebar-visited')) {
+    if (!localStorage.getItem('lifebar-visited')) {
         fetch('https://abacus.jasoncameron.dev/hit/lifebar-orara/visits?cb=' + Date.now())
             .then(res => res.json())
             .then(data => {
-                sessionStorage.setItem('lifebar-visited', 'true');
+                localStorage.setItem('lifebar-visited', 'true');
                 console.log("Visitor count session initialized");
             })
             .catch(err => console.error("Visitor Counter Up error:", err));
+    }
+    if (db) {
+        startPresenceHeartbeat('lifebar');
     }
 }
 
@@ -1457,17 +1498,48 @@ function revealVisitorCount() {
     fetch('https://abacus.jasoncameron.dev/get/lifebar-orara/visits?cb=' + Date.now())
         .then(res => res.json())
         .then(data => {
+            let totalCountText = '0';
+            const dict = translations[currentLang] || translations.ko;
+            
             if (data && data.value !== undefined) {
-                const dict = translations[currentLang] || translations.ko; countEl.textContent = dict.dynamicVisitorCount.replace('{count}', data.value.toLocaleString(currentLang));
-            } else if (data && data.error === 'Key not found') {
-                const dict = translations[currentLang] || translations.ko; countEl.textContent = dict.dynamicVisitorCount.replace('{count}', '0');
+                totalCountText = data.value.toLocaleString(currentLang);
+            }
+            
+            if (db) {
+                db.collection('presence')
+                    .where('appName', '==', 'lifebar')
+                    .onSnapshot(snapshot => {
+                        const now = Date.now();
+                        let activeCount = 0;
+                        
+                        snapshot.forEach(doc => {
+                            const docData = doc.data();
+                            if (docData.lastActive) {
+                                const lastActiveMs = docData.lastActive.toDate().getTime();
+                                if (now - lastActiveMs < 40000) {
+                                    activeCount++;
+                                }
+                            } else {
+                                activeCount++;
+                            }
+                        });
+                        
+                        if (activeCount < 1) activeCount = 1;
+                        
+                        const liveText = currentLang === 'ko' ? ` (실시간 ${activeCount}명)` : ` (live: ${activeCount})`;
+                        countEl.textContent = dict.dynamicVisitorCount.replace('{count}', totalCountText) + liveText;
+                    }, err => {
+                        console.error("Presence listener error:", err);
+                        countEl.textContent = dict.dynamicVisitorCount.replace('{count}', totalCountText);
+                    });
             } else {
-                const dict = translations[currentLang] || translations.ko; countEl.textContent = dict.dynamicVisitorFailed;
+                countEl.textContent = dict.dynamicVisitorCount.replace('{count}', totalCountText);
             }
         })
         .catch(err => {
             console.error("Fetch counter error:", err);
-            const dict = translations[currentLang] || translations.ko; countEl.textContent = dict.dynamicVisitorFailed;
+            const dict = translations[currentLang] || translations.ko;
+            countEl.textContent = dict.dynamicVisitorFailed;
         });
 }
 
